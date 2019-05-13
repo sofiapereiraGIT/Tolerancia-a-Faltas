@@ -166,7 +166,7 @@ public class Server implements Serializable {
         return server;
     }
 
-    //todo : faltam os synchronized ou sockets
+    //todo : faltam os synchronized ou locks
     public static void main(final String[] args){
         int id = Integer.parseInt(args[0]);
         Server se = loadState(id, "server"+id+"DB");
@@ -191,8 +191,10 @@ public class Server implements Serializable {
             middlewareS.sendMessage(se.getS().encode(est), "servergroup");
         }
 
-        Thread refresher = new Thread(new Refresher(se, middlewareS));
-        refresher.start();
+        Thread refresher1 = new Thread(new Refresher(se, middlewareS));
+        Thread refresher2 = new Thread(new Refresher(se, middlewareS));
+        refresher1.start();
+        refresher2.start();
 
         while(true){
             SpreadMessage msg = middlewareR.receiveMessage();

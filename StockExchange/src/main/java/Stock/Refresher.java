@@ -16,7 +16,7 @@ public class Refresher implements Runnable{
         this.middlewareS = sender;
     }
 
-    //todo : faltam os synchronized ou sockets
+    //todo : faltam os synchronized ou locks
     public void run(){
         while(true) {
             if(this.server.getMessages().size() > this.server.getNextMsg()){
