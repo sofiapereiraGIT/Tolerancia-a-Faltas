@@ -52,6 +52,12 @@ public class ClientStub {
 
         new Thread(new ClientStubThread(port, this.CFcompanies, this.CFactions, this.CFbuy, this.CFsell, this.lockCFcompanies, this.lockCFactions, this.lockCFbuy, this.lockCFsell))
                 .start();
+
+        try {
+            Thread.sleep(2500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public CompletableFuture<Map<String, Long>> getCompanies() {
