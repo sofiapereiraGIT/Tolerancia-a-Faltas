@@ -1,28 +1,27 @@
 package Stock;
 
-import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
 public class StockImp {
-    private Map<String, Long> companys;
+    private Map<String, Long> companies;
 
     public StockImp(){
-        this.companys = new HashMap<String, Long>();
-        this.companys.put("Mango", (long) 500);
-        this.companys.put("Zara", (long) 500);
-        this.companys.put("Nike", (long) 500);
+        this.companies = new HashMap<String, Long>();
+        this.companies.put("Mango", (long) 500);
+        this.companies.put("Zara", (long) 500);
+        this.companies.put("Nike", (long) 500);
     }
 
     public StockImp(Map<String, Long> c){
-        this.companys = new HashMap<String, Long>();
-        this.setCompanys(c);
+        this.companies = new HashMap<String, Long>();
+        this.setCompanies(c);
     }
 
-    public Map<String, Long> getCompanys() {
+    public Map<String, Long> getCompanies() {
         Map<String, Long> result = new HashMap<String, Long>();
 
-        for(Map.Entry<String, Long> entry: this.companys.entrySet()){
+        for(Map.Entry<String, Long> entry: this.companies.entrySet()){
             result.put(entry.getKey(), entry.getValue());
         }
 
@@ -30,11 +29,11 @@ public class StockImp {
 
     }
 
-    public void setCompanys(Map<String, Long> cm){
-        this.companys.clear();
+    public void setCompanies(Map<String, Long> cm){
+        this.companies.clear();
 
         for(Map.Entry<String, Long> entry: cm.entrySet()){
-            this.companys.put(entry.getKey(), entry.getValue());
+            this.companies.put(entry.getKey(), entry.getValue());
         }
     }
 
@@ -43,7 +42,7 @@ public class StockImp {
 
         sb.append("Stocks from this Client\n");
 
-        for(Map.Entry<String, Long> entry: this.companys.entrySet()){
+        for(Map.Entry<String, Long> entry: this.companies.entrySet()){
             sb.append(entry.getKey()).append(": ").append(entry.getValue()).append(" actions.\n");
         }
 
@@ -51,14 +50,14 @@ public class StockImp {
     }
 
     public long actions(String c){
-        if(this.companys.containsKey(c)) return this.companys.get(c);
+        if(this.companies.containsKey(c)) return this.companies.get(c);
         return -1;
     }
 
     public boolean sell(String c, long a){
-        if(this.companys.containsKey(c)){
-            long tmp = this.companys.get(c);
-            this.companys.put(c, tmp+a);
+        if(this.companies.containsKey(c)){
+            long tmp = this.companies.get(c);
+            this.companies.put(c, tmp+a);
 
             return true;
         }
@@ -67,11 +66,11 @@ public class StockImp {
     }
 
     public boolean buy(String c, long a){
-        if(this.companys.containsKey(c)){
-            long tmp = this.companys.get(c);
+        if(this.companies.containsKey(c)){
+            long tmp = this.companies.get(c);
 
             if(tmp >= a){
-                this.companys.put(c, tmp-a);
+                this.companies.put(c, tmp-a);
                 return true;
             }
 

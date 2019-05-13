@@ -1,6 +1,7 @@
 package Stock;
 
 import Common.*;
+import Common.Messages.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -94,8 +95,8 @@ public class Refresher implements Runnable{
             System.out.println(companiesRequest.toString());
             this.server.addClientName(companiesRequest.getClientName());
 
-            Map<String, Long> companys = this.server.getStock().getCompanys();
-            CompaniesReply companiesReply = new CompaniesReply(companiesRequest.getTransactionID(), companiesRequest.getClientName(), this.server.getId(), companys);
+            Map<String, Long> companies = this.server.getStock().getCompanies();
+            CompaniesReply companiesReply = new CompaniesReply(companiesRequest.getTransactionID(), companiesRequest.getClientName(), this.server.getId(), companies);
             System.out.println(companiesReply.toString());
 
             message = companiesReply;
@@ -116,7 +117,7 @@ public class Refresher implements Runnable{
         } else if(mensagem instanceof EstadoRequest){
             EstadoRequest estadoRequest = (EstadoRequest) mensagem;
 
-            if(estadoRequest.getId() != this.server.getId()){
+            if(estadoRequest.getServerID() != this.server.getId()){
                 System.out.println(estadoRequest.toString());
 
                 List<Message> result = new ArrayList<>();
@@ -124,7 +125,7 @@ public class Refresher implements Runnable{
                     result = this.server.getMessages().subList(estadoRequest.getNextMsg(), this.server.getMessages().size());
                 }
 
-                EstadoReply estadoReply = new EstadoReply(estadoRequest.getId(), result);
+                EstadoReply estadoReply = new EstadoReply(estadoRequest.getServerID(), result);
                 System.out.println(estadoReply.toString());
 
                 message = estadoReply;

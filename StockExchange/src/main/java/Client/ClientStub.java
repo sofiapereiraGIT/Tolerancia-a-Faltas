@@ -1,6 +1,7 @@
 package Client;
 
 import Common.*;
+import Common.Messages.*;
 import io.atomix.utils.serializer.Serializer;
 
 import java.util.HashMap;

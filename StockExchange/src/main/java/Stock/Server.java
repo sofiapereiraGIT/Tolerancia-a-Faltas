@@ -2,7 +2,8 @@ package Stock;
 
 import Common.*;
 
-import Common.MembershipInfo;
+import Common.Messages.*;
+import Common.Messages.MembershipInfo;
 import io.atomix.utils.serializer.Serializer;
 import spread.*;
 
@@ -14,7 +15,6 @@ public class Server implements Serializable {
     private StockImp stock;
     private Serializer s;
     private int id;
-    private boolean estado;
     private List<Message> messages;
     private List<Message> notProcessedMsg;
     private int nextMsg;
@@ -141,8 +141,8 @@ public class Server implements Serializable {
     public static void main(final String[] args){
         int id = Integer.parseInt(args[0]);
         Server se = loadState(id, "server"+id+"DB");
-        Middleware middlewareS = new Middleware("sender_server"+args[1], "servergroup");
-        Middleware middlewareR = new Middleware("receiver_server"+args[1], "servergroup");
+        Middleware middlewareS = new Middleware("sender_server"+args[0], "servergroup");
+        Middleware middlewareR = new Middleware("receiver_server"+args[0], "servergroup");
 
         SpreadMessage spreadMessage = middlewareR.receiveMessage();
 

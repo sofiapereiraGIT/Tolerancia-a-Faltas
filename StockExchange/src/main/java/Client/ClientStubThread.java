@@ -1,6 +1,7 @@
 package Client;
 
 import Common.*;
+import Common.Messages.*;
 import io.atomix.utils.serializer.Serializer;
 import spread.SpreadGroup;
 import spread.SpreadMessage;
@@ -65,7 +66,7 @@ public class ClientStubThread implements Runnable {
                     CompaniesReply reply = (CompaniesReply) msg;
 
                     this.lockCFcompanies.lock();
-                    this.CFcompanies.get(reply.getTransactionID()).complete(reply.getCompanys());
+                    this.CFcompanies.get(reply.getTransactionID()).complete(reply.getCompanies());
                     this.lockCFcompanies.unlock();
 
                 } else if (msg instanceof ActionsReply) {

@@ -1,4 +1,4 @@
-package Common;
+package Common.Messages;
 
 public class BuyRequest extends Message {
     private String company;
@@ -16,5 +16,16 @@ public class BuyRequest extends Message {
 
     public long getActions() {
         return actions;
+    }
+
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(super.toString());
+        sb.append("--- BuyRequest ---\n");
+        sb.append("Company: ").append(this.company).append("\n");
+        sb.append("Number of actions: ").append(this.actions).append("\n");
+
+        return sb.toString();
     }
 }

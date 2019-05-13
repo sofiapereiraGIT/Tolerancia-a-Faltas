@@ -1,4 +1,4 @@
-package Common;
+package Common.Messages;
 
 public class SellReply extends Message {
     private int serverID;
@@ -20,5 +20,17 @@ public class SellReply extends Message {
 
     public boolean getResult(){
         return this.result;
+    }
+
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(super.toString());
+        sb.append("Server who replied: ").append(this.serverID).append("\n");
+        sb.append("--- SellReply ---\n");
+        sb.append("Company: ").append(this.company).append("\n");
+        sb.append("Success: ").append(this.result).append("\n");
+
+        return sb.toString();
     }
 }

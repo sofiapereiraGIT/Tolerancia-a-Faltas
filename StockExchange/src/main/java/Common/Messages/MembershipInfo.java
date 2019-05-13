@@ -1,4 +1,4 @@
-package Common;
+package Common.Messages;
 
 public class MembershipInfo {
     private int serverID;
@@ -16,8 +16,9 @@ public class MembershipInfo {
     public String toString(){
         StringBuilder sb = new StringBuilder();
 
-        sb.append("Membership info renewed by server ").append(this.serverID);
-        sb.append(" -> ").append(this.number).append(" server remaining");
+        sb.append("--- MembershipInfo ---\n");
+        sb.append("From server: ").append(this.serverID).append(".\n");
+        sb.append("Number of active servers: ").append(this.number).append(".\n");
 
         return sb.toString();
     }

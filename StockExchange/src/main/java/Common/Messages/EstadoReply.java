@@ -1,21 +1,21 @@
-package Common;
+package Common.Messages;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class EstadoReply extends Message {
-    private int serverId;
+    private int serverID;
     private List<Message> messages;
 
     public EstadoReply(int server, List<Message> m){
         super(-1,"");
-        this.serverId = server;
+        this.serverID = server;
         this.messages = new ArrayList<>();
         this.setMessages(m);
     }
 
     public int getServerId(){
-        return this.serverId;
+        return this.serverID;
     }
 
     public List<Message> getMessages() {
@@ -30,7 +30,12 @@ public class EstadoReply extends Message {
     public String toString(){
         StringBuilder sb = new StringBuilder();
 
-        sb.append("EstadoReply para o servidor ").append(this.getServerId());
+        sb.append("--- EstadoReply ---\n");
+        sb.append("To server: ").append(this.serverID).append("\n");
+
+        for(Message m : this.messages) {
+            sb.append("Message: ").append(m.toString()).append("\n");
+        }
 
         return sb.toString();
     }

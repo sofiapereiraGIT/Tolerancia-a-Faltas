@@ -1,4 +1,4 @@
-package Common;
+package Common.Messages;
 
 public class ActionsReply extends Message {
     private int serverID;
@@ -20,5 +20,17 @@ public class ActionsReply extends Message {
 
     public long getActions() {
         return this.actions;
+    }
+
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(super.toString());
+        sb.append("Server who replied: ").append(this.serverID).append("\n");
+        sb.append("--- ActionsReply ---\n");
+        sb.append("Company: ").append(this.company).append("\n");
+        sb.append("Number of actions: ").append(this.actions).append("\n");
+
+        return sb.toString();
     }
 }
