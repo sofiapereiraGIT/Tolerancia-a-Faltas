@@ -3,7 +3,7 @@ package Stock;
 import Common.*;
 
 import Common.Messages.*;
-import Common.Messages.MembershipInfo;
+import Common.Messages.MembershipInfoReply;
 import io.atomix.utils.serializer.Serializer;
 import spread.*;
 
@@ -20,6 +20,7 @@ public class Server implements Serializable {
     private int nextMsg;
     private boolean waiting;
     private List<String> clientNames;
+    private SpreadMessage latestMembershipInfo;
 
     public Server(int id){
         this.stock = new StockImp();
@@ -34,7 +35,7 @@ public class Server implements Serializable {
                 .withTypes(SellRequest.class)
                 .withTypes(EstadoReply.class)
                 .withTypes(EstadoRequest.class)
-                .withTypes(MembershipInfo.class)
+                .withTypes(MembershipInfoReply.class)
                 .build();
         this.id = id;
         this.messages = new ArrayList<>();
@@ -42,6 +43,7 @@ public class Server implements Serializable {
         this.nextMsg = 0;
         this.waiting = true;
         this.clientNames = new ArrayList<>();
+        this.latestMembershipInfo = new SpreadMessage();
     }
 
     public StockImp getStock() {
@@ -79,6 +81,10 @@ public class Server implements Serializable {
     }
 
     public List<String> getClientNames(){ return this.clientNames;}
+
+    public SpreadMessage getLatestMembershipInfo(){ return this.latestMembershipInfo;}
+
+    public void setLatestMembershipInfo(SpreadMessage sm){ this.latestMembershipInfo = sm;}
 
     public void addMsg(Message m){
         this.messages.add(m);
@@ -168,6 +174,7 @@ public class Server implements Serializable {
         Middleware middlewareR = new Middleware("receiver_server"+args[0], "servergroup");
 
         SpreadMessage spreadMessage = middlewareR.receiveMessage();
+        se.setLatestMembershipInfo(spreadMessage);
 
         System.out.println("\nNew membership message from " + spreadMessage.getMembershipInfo().getGroup());
         for(SpreadGroup g : spreadMessage.getMembershipInfo().getMembers()){
@@ -179,7 +186,7 @@ public class Server implements Serializable {
             System.out.println("No need to wait. I am alone.");
         }
         else {
-            EstadoRequest est = new EstadoRequest(se.getId(), se.getNextMsg());
+            EstadoRequest est = new EstadoRequest("servergroup", se.getId(), se.getNextMsg());
             System.out.println(est.toString());
             middlewareS.sendMessage(se.getS().encode(est), "servergroup");
         }
@@ -204,6 +211,8 @@ public class Server implements Serializable {
                 se.writeInTextFile("server"+id+"TXT");
             }
             else{
+                se.setLatestMembershipInfo(spreadMessage);
+
                 System.out.println("\nNew membership message from " + spreadMessage.getMembershipInfo().getGroup());
                 for(SpreadGroup g : spreadMessage.getMembershipInfo().getMembers()){
                     System.out.println(g.toString());
@@ -217,7 +226,7 @@ public class Server implements Serializable {
                     }
                 }
 
-                MembershipInfo mi = new MembershipInfo(id, number, se.getServersNames(spreadMessage));
+                MembershipInfoReply mi = new MembershipInfoReply(-1, "", id, number, se.getServersNames(spreadMessage));
                 for(String name: se.getClientNames()){
                     middlewareS.sendMessage(se.getS().encode(mi), name);
                 }

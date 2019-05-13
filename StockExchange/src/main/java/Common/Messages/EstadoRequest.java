@@ -4,8 +4,8 @@ public class EstadoRequest extends Message {
     private int serverID;
     private int nextMsg;
 
-    public EstadoRequest(int add, int n){
-        super(-1,"");
+    public EstadoRequest(String c, int add, int n){
+        super(-1, c);
         this.serverID = add;
         this.nextMsg = n;
     }

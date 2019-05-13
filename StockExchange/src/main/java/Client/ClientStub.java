@@ -40,7 +40,7 @@ public class ClientStub {
                 .withTypes(SellRequest.class)
                 .withTypes(EstadoReply.class)
                 .withTypes(EstadoRequest.class)
-                .withTypes(MembershipInfo.class)
+                .withTypes(MembershipInfoReply.class)
                 .build();
 
         this.transactionID = 0;
