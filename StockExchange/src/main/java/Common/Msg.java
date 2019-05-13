@@ -1,21 +1,19 @@
 package Common;
 
-import io.atomix.utils.net.Address;
-
 public class Msg {
     private int transactionID;
-    private Address client;
+    private String clientName;
 
-    public Msg(int t, Address c){
+    public Msg(int t, String c){
         this.transactionID = t;
-        this.client = c;
+        this.clientName = c;
     }
 
     public int getTransactionID() {
         return this.transactionID;
     }
 
-    public Address getClientID() {
-        return this.client;
+    public String getClientName() {
+        return this.clientName;
     }
 }

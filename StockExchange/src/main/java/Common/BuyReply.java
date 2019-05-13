@@ -1,12 +1,10 @@
 package Common;
 
-import io.atomix.utils.net.Address;
-
 public class BuyReply extends Msg{
     private int serverID;
     private boolean result;
 
-    public BuyReply(int t, Address c, int s, boolean r){
+        public BuyReply(int t, String c, int s, boolean r){
         super(t,c);
         this.serverID = s;
         this.result = r;
