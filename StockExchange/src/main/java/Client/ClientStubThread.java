@@ -60,14 +60,15 @@ public class ClientStubThread implements Runnable {
 
     @Override
     public void run() {
-        List<String> waitingAckFromServers = new ArrayList<>();
+        Map<Integer, List<String>> waitingFromServers = new HashMap<>();
+        Map<Integer, Integer> receivedFromServers = new HashMap<>();
         List<String> allActiveServers = new ArrayList<>();
 
-
-            /* espera de 4 servidores
-            - 1 morre -> espero por 3
-            - 1 entra -> espero por 4
-            - 1 morre -> depende se está ou não*/
+        //todo send membershipInfoRequest id=0
+        /* espera de 4 servidores
+        - 1 morre -> espero por 3
+        - 1 entra -> espero por 4
+        - 1 morre -> depende se está ou não*/
 
         while (true) {
             SpreadMessage spreadMessage = this.middleware.receiveMessage();
@@ -110,6 +111,25 @@ public class ClientStubThread implements Runnable {
                     this.CFsell.get(reply.getTransactionID()).complete(map);
                     this.lockCFsell.unlock();
 
+                } else  if (msg instanceof MembershipInfoReply) {
+                    MembershipInfoReply reply = (MembershipInfoReply) msg;
+
+                    allActiveServers = reply.getAllActiveServers();
+
+                    Map<Integer, List<String>> auxMap = new HashMap<>();
+                    for (Map.Entry<Integer, List<String>> entry : waitingFromServers.entrySet()){
+                        List<String> auxList = new ArrayList<>(entry.getValue());
+                        auxMap.put(entry.getKey(), auxList);
+                    }
+
+                    for (Map.Entry<Integer, List<String>> entry : auxMap.entrySet()){
+                        for(String s : entry.getValue()){
+                            if(!allActiveServers.contains(s))
+                                waitingFromServers.get(entry.getKey()).remove(s);
+                        }
+                    }
+
+                    //todo ver se pode fazer completes
                 }
             } else {
                 System.out.println("New membership message from " + spreadMessage.getMembershipInfo().getGroup());
