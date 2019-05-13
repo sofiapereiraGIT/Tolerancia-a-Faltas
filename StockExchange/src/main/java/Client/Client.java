@@ -4,7 +4,7 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Client {
+public class Client implements Serializable {
     private Map<String, Long> companys;
 
     public Client(){
@@ -38,7 +38,7 @@ public class Client {
     public String toString(){
         StringBuilder sb = new StringBuilder();
 
-        sb.append("Stocks from this Client\n");
+        sb.append("Stocks from this Client.\n");
 
         for(Map.Entry<String, Long> entry: this.companys.entrySet()){
             sb.append(entry.getKey()).append(": ").append(entry.getValue()).append(" actions.\n");
