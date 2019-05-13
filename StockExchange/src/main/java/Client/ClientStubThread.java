@@ -6,7 +6,9 @@ import io.atomix.utils.serializer.Serializer;
 import spread.SpreadGroup;
 import spread.SpreadMessage;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.ReentrantLock;
@@ -40,6 +42,9 @@ public class ClientStubThread implements Runnable {
                 .withTypes(CompaniesRequest.class)
                 .withTypes(SellReply.class)
                 .withTypes(SellRequest.class)
+                .withTypes(EstadoReply.class)
+                .withTypes(EstadoRequest.class)
+                .withTypes(MembershipInfo.class)
                 .build();
 
         this.CFcompanies = CFcompanies;
@@ -55,6 +60,15 @@ public class ClientStubThread implements Runnable {
 
     @Override
     public void run() {
+        List<String> waitingAckFromServers = new ArrayList<>();
+        List<String> allActiveServers = new ArrayList<>();
+
+
+            /* espera de 4 servidores
+            - 1 morre -> espero por 3
+            - 1 entra -> espero por 4
+            - 1 morre -> depende se está ou não*/
+
         while (true) {
             SpreadMessage spreadMessage = this.middleware.receiveMessage();
 

@@ -24,14 +24,17 @@ public class Server implements Serializable {
     public Server(int id){
         this.stock = new StockImp();
         this.s = Serializer.builder()
-                .withTypes(ActionsRequest.class)
                 .withTypes(ActionsReply.class)
-                .withTypes(BuyRequest.class)
+                .withTypes(ActionsRequest.class)
                 .withTypes(BuyReply.class)
-                .withTypes(CompaniesRequest.class)
+                .withTypes(BuyRequest.class)
                 .withTypes(CompaniesReply.class)
-                .withTypes(SellRequest.class)
+                .withTypes(CompaniesRequest.class)
                 .withTypes(SellReply.class)
+                .withTypes(SellRequest.class)
+                .withTypes(EstadoReply.class)
+                .withTypes(EstadoRequest.class)
+                .withTypes(MembershipInfo.class)
                 .build();
         this.id = id;
         this.messages = new ArrayList<>();
@@ -95,6 +98,26 @@ public class Server implements Serializable {
 
     public void addClientName(String name){
         if(!this.clientNames.contains(name)) this.clientNames.add(name);
+    }
+
+    public List<String> getServersNames(SpreadMessage msg){
+        List<String> allActiveServers = new ArrayList<>();
+
+        for(SpreadGroup g : msg.getMembershipInfo().getMembers()){
+            for(int i=1; i<g.toString().length(); i++){
+                if (g.toString().charAt(i)=='#'){
+                    i=g.toString().length();
+                }
+                else {
+                    String serverName = g.toString().substring(1,i+1);
+                    if(serverName.charAt(0)=='s'){
+                        allActiveServers.add(serverName);
+                    }
+                }
+            }
+        }
+
+        return allActiveServers;
     }
 
     synchronized void writeInTextFile(String fileName) {
@@ -194,7 +217,7 @@ public class Server implements Serializable {
                     }
                 }
 
-                MembershipInfo mi = new MembershipInfo(id, number);
+                MembershipInfo mi = new MembershipInfo(id, number, se.getServersNames(spreadMessage));
                 for(String name: se.getClientNames()){
                     middlewareS.sendMessage(se.getS().encode(mi), name);
                 }

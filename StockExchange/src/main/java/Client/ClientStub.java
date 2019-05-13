@@ -38,6 +38,9 @@ public class ClientStub {
                 .withTypes(CompaniesRequest.class)
                 .withTypes(SellReply.class)
                 .withTypes(SellRequest.class)
+                .withTypes(EstadoReply.class)
+                .withTypes(EstadoRequest.class)
+                .withTypes(MembershipInfo.class)
                 .build();
 
         this.transactionID = 0;
