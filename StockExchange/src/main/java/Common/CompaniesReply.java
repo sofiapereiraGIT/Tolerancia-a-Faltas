@@ -3,11 +3,11 @@ package Common;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CompanysReply extends Msg{
+public class CompaniesReply extends Message {
     private int serverID;
     private Map<String, Long> companys;
 
-    public CompanysReply(int t, String c, int s, Map<String, Long> cm){
+    public CompaniesReply(int t, String c, int s, Map<String, Long> cm){
         super(t, c);
         this.serverID = s;
         this.companys = new HashMap<String, Long>();

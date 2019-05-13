@@ -1,10 +1,10 @@
 package Common;
 
-public class Msg {
+public class Message {
     private int transactionID;
     private String clientName;
 
-    public Msg(int t, String c){
+    public Message(int t, String c){
         this.transactionID = t;
         this.clientName = c;
     }
@@ -15,10 +15,5 @@ public class Msg {
 
     public String getClientName() {
         return this.clientName;
-    }
-
-    public Msg clone(){
-        Msg m = new Msg(this.transactionID, this.clientName);
-        return clone();
     }
 }

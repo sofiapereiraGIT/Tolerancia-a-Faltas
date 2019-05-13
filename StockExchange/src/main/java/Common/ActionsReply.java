@@ -1,6 +1,6 @@
 package Common;
 
-public class ActionsReply extends Msg{
+public class ActionsReply extends Message {
     private int serverID;
     private String company;
     private long actions;

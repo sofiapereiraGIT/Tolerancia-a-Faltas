@@ -1,6 +1,6 @@
 package Common;
 
-public class BuyRequest extends Msg{
+public class BuyRequest extends Message {
     private String company;
     private long actions;
 

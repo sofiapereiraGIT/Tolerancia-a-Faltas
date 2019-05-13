@@ -16,7 +16,7 @@ public class Middleware {
         this.connection = new SpreadConnection();
 
         try {
-            this.connection.connect(InetAddress.getByName("localhost"), 0, connectionName, false, false);
+            this.connection.connect(InetAddress.getByName("localhost"), 0, connectionName, false, true);
         } catch (SpreadException | UnknownHostException e) {
             e.printStackTrace();
         }

@@ -2,23 +2,24 @@ package Stock;
 
 import Common.*;
 
+import Common.MembershipInfo;
 import io.atomix.utils.serializer.Serializer;
 import spread.*;
 
-import java.io.InterruptedIOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-public class Server{
+public class Server implements Serializable {
     private StockImp stock;
     private Serializer s;
     private int id;
     private boolean estado;
-    private List<Msg> messages;
+    private List<Message> messages;
+    private List<Message> notProcessedMsg;
     private int nextMsg;
+    private boolean waiting;
+    private List<String> clientNames;
 
     public Server(int id){
         this.stock = new StockImp();
@@ -27,165 +28,177 @@ public class Server{
                 .withTypes(ActionsReply.class)
                 .withTypes(BuyRequest.class)
                 .withTypes(BuyReply.class)
-                .withTypes(CompanysRequest.class)
-                .withTypes(CompanysReply.class)
+                .withTypes(CompaniesRequest.class)
+                .withTypes(CompaniesReply.class)
                 .withTypes(SellRequest.class)
                 .withTypes(SellReply.class)
                 .build();
         this.id = id;
-        this.estado = false;
         this.messages = new ArrayList<>();
+        this.notProcessedMsg = new ArrayList<>();
         this.nextMsg = 0;
+        this.waiting = true;
+        this.clientNames = new ArrayList<>();
     }
 
-    public void setEstado(boolean b){
-        this.estado = b;
+    public StockImp getStock() {
+        return this.stock;
     }
 
-    public static void main(final String[] args){
-        Server se = new Server(Integer.parseInt(args[0]));
-        ArrayList<Msg> mensagens = new ArrayList<>();
+    public int getId() {
+        return id;
+    }
+
+    public List<Message> getMessages() {
+        return this.messages;
+    }
+
+    public List<Message> getNotProcessedMsg(){ return this.notProcessedMsg;}
+
+    public int getNextMsg() {
+        return this.nextMsg;
+    }
+
+    public void setNextMsg(int nextMsg) {
+        this.nextMsg = nextMsg;
+    }
+
+    public Serializer getS() {
+        return this.s;
+    }
+
+    public boolean isWaiting(){
+        return this.waiting;
+    }
+
+    public void setWaiting(boolean b){
+        this.waiting = b;
+    }
+
+    public List<String> getClientNames(){ return this.clientNames;}
+
+    public void addMsg(Message m){
+        this.messages.add(m);
+    }
+
+    public void addNotProcessedMsg(Message m){ this.notProcessedMsg.add(m); }
+
+    public void removeNotProcessedMsg(Message m){
+        for(int i=0; i<this.notProcessedMsg.size(); i++){
+            Message tmp = this.notProcessedMsg.get(i);
+            if(tmp.getTransactionID() == m.getTransactionID() && tmp.getClientName() == m.getClientName()){
+                this.notProcessedMsg.remove(i);
+                break;
+            }
+        }
+    }
+
+    public void addClientName(String name){
+        if(!this.clientNames.contains(name)) this.clientNames.add(name);
+    }
+
+    synchronized void writeInTextFile(String fileName) {
+        try {
+            PrintWriter fich = new PrintWriter(fileName);
+            fich.println(this.toString());
+            fich.flush();
+            fich.close();
+        } catch (IOException e) {
+            System.out.println("Error saving state in text file.");
+        }
+    }
+
+    synchronized void storeState(String fileName) {
+        try {
+            FileOutputStream fos = new FileOutputStream(fileName);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(this);
+            oos.flush();
+            oos.close();
+            fos.close();
+        } catch (IOException e) {
+            System.out.println("Error saving state.");
+        }
+    }
+
+    synchronized private static Server loadState(int id, String fileName) {
+        Server server = new Server(id);
 
         try {
-
-            SpreadGroup group = new SpreadGroup();
-            group.join(connection, "servergroup");
-
-            EstadoRequest est = new EstadoRequest(se.id, se.nextMsg);
-            System.out.println(est.toString());
-            SpreadMessage msgE = new SpreadMessage();
-            msgE.setData(se.s.encode(est));
-            msgE.addGroup("servergroup");
-            msgE.setReliable();
-            connection.multicast(msgE);
-
-            Thread tr = new Thread(new Timer(se));
-            tr.start();
-
-            while(true) {
-                SpreadMessage message = connection.receive();
-                Msg mensagem = se.s.decode(message.getData());
-
-                if(!se.estado){
-                    if(mensagem instanceof EstadoReply){
-                        EstadoReply estM = (EstadoReply) mensagem;
-                        System.out.println(estM.toString());
-
-                        if(estM.getServerId() == se.id){
-                            List<Msg> result = estM.getMessages();
-
-                            for(Msg m: result){
-                                se.processMsg(m);
-                                se.nextMsg++;
-                            }
-
-                            se.estado = true;
-                            tr.interrupt();
-
-                            for(int i=0; i<mensagens.size(); i++){
-                                Msg m = se.processMsg(mensagens.get(i));
-
-                                SpreadMessage msg = new SpreadMessage();
-                                msg.setData(se.s.encode(m));
-                                msg.addGroup(m.getClientName());
-
-                                if(msg != null){
-                                    msg.setReliable();
-                                    msg.setAgreed();
-                                    connection.multicast(msg);
-                                }
-                                mensagens.remove(i);
-                            }
-                        }
-                    }
-                    else{
-                        mensagens.add(mensagem);
-                    }
-                }
-
-                else {
-                    Msg m = se.processMsg(mensagem);
-
-                    SpreadMessage msg = new SpreadMessage();
-                    msg.setData(se.s.encode(m));
-                    msg.addGroup(m.getClientName());
-
-                    if (msg != null) {
-                        msg.setReliable();
-                        msg.setAgreed();
-                        connection.multicast(msg);
-                        se.nextMsg++;
-                    }
-                }
-            }
-        } catch (SpreadException | UnknownHostException | InterruptedIOException e) {
-            e.printStackTrace();
+            FileInputStream fis = new FileInputStream(fileName);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            server = (Server) ois.readObject();
+            ois.close();
+            fis.close();
+        } catch (IOException | ClassNotFoundException e) {
+            System.out.println("Could not find previous state.");
         }
+
+        return server;
     }
 
-    public Msg processMsg(Msg mensagem){
-        Msg msg = null;
+    //todo : faltam os synchronized ou sockets
+    public static void main(final String[] args){
+        int id = Integer.parseInt(args[0]);
+        Server se = loadState(id, "server"+id+"DB");
+        Middleware middlewareS = new Middleware("sender_server"+args[1], "servergroup");
+        Middleware middlewareR = new Middleware("receiver_server"+args[1], "servergroup");
 
-        if(mensagem instanceof ActionsRequest){
-            ActionsRequest actionsRequest = (ActionsRequest) mensagem;
-            System.out.println(actionsRequest.toString());
+        SpreadMessage spreadMessage = middlewareR.receiveMessage();
 
-            String company = actionsRequest.getCompany();
-            long actions = this.stock.actions(company);
-            ActionsReply actionsReply = new ActionsReply(actionsRequest.getTransactionID(), actionsRequest.getClientName(), this.id, company, actions);
-            System.out.println(actionsReply.toString());
-
-            msg = actionsReply;
-
-        } else if(mensagem instanceof BuyRequest){
-            BuyRequest buyRequest = (BuyRequest) mensagem;
-            System.out.println(buyRequest.toString());
-            String company = buyRequest.getCompany();
-            long qt = buyRequest.getActions();
-
-            boolean result = this.stock.buy(company, qt);
-            BuyReply buyReply = new BuyReply(buyRequest.getTransactionID(), buyRequest.getClientName(), this.id, company, result);
-            System.out.println(buyReply.toString());
-
-            msg = buyReply;
-
-        } else if(mensagem instanceof CompanysRequest){
-            CompanysRequest companysRequest = (CompanysRequest) mensagem;
-            System.out.println(companysRequest.toString());
-
-            Map<String, Long> companys = this.stock.getCompanys();
-            CompanysReply companysReply = new CompanysReply(companysRequest.getTransactionID(), companysRequest.getClientName(), this.id, companys);
-            System.out.println(companysReply.toString());
-
-           msg = companysReply;
-
-        } else if(mensagem instanceof SellRequest){
-            SellRequest sellRequest = (SellRequest) mensagem;
-            System.out.println(sellRequest.toString());
-            String company = sellRequest.getCompany();
-            long qt = sellRequest.getActions();
-
-            boolean result = this.stock.sell(company, qt);
-            SellReply sellReply = new SellReply(sellRequest.getTransactionID(), sellRequest.getClientName(), this.id, company, result);
-            System.out.println(sellReply.toString());
-
-            msg = sellReply;
-
-        } else if(mensagem instanceof EstadoRequest){
-            EstadoRequest estadoRequest = (EstadoRequest) mensagem;
-
-            if(estadoRequest.getId() != this.id){
-                System.out.println(estadoRequest.toString());
-
-                List<Msg> result = this.messages.subList(estadoRequest.getNextMsg(), this.messages.size());
-
-                EstadoReply estadoReply = new EstadoReply(estadoRequest.getId(), result);
-                System.out.println(estadoReply.toString());
-
-                msg = estadoReply;
-            }
+        System.out.println("\nNew membership message from " + spreadMessage.getMembershipInfo().getGroup());
+        for(SpreadGroup g : spreadMessage.getMembershipInfo().getMembers()){
+            System.out.println(g.toString());
         }
 
-        return msg;
+        if(spreadMessage.getMembershipInfo().getMembers().length == 1){
+            se.setWaiting(false);
+            System.out.println("No need to wait. I am alone.");
+        }
+        else {
+            EstadoRequest est = new EstadoRequest(se.getId(), se.getNextMsg());
+            System.out.println(est.toString());
+            middlewareS.sendMessage(se.getS().encode(est), "servergroup");
+        }
+
+        Thread refresher = new Thread(new Refresher(se, middlewareS));
+        refresher.start();
+
+        while(true){
+            SpreadMessage msg = middlewareR.receiveMessage();
+
+            if(msg.isRegular()){
+                Message m = se.getS().decode(msg.getData());
+
+                if(se.isWaiting()){
+                    se.addNotProcessedMsg(m);
+                }
+                else{
+                    se.addMsg(m);
+                }
+
+                se.storeState("server"+id+"DB");
+                se.writeInTextFile("server"+id+"TXT");
+            }
+            else{
+                System.out.println("\nNew membership message from " + spreadMessage.getMembershipInfo().getGroup());
+                for(SpreadGroup g : spreadMessage.getMembershipInfo().getMembers()){
+                    System.out.println(g.toString());
+                }
+
+                int number = spreadMessage.getMembershipInfo().getMembers().length;
+                if(number == 1){
+                    if(se.isWaiting()){
+                        se.setWaiting(false);
+                        System.out.println("Stoped waiting");
+                    }
+                }
+
+                MembershipInfo mi = new MembershipInfo(id, number);
+                for(String name: se.getClientNames()){
+                    middlewareS.sendMessage(se.getS().encode(mi), name);
+                }
+            }
+        }
     }
 }

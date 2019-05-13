@@ -3,11 +3,11 @@ package Common;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EstadoReply extends Msg{
+public class EstadoReply extends Message {
     private int serverId;
-    private List<Msg> messages;
+    private List<Message> messages;
 
-    public EstadoReply(int server, List<Msg> m){
+    public EstadoReply(int server, List<Message> m){
         super(-1,"");
         this.serverId = server;
         this.messages = new ArrayList<>();
@@ -18,23 +18,13 @@ public class EstadoReply extends Msg{
         return this.serverId;
     }
 
-    public List<Msg> getMessages() {
-        List<Msg> result = new ArrayList<>();
-
-        for(Msg m: this.messages){
-            result.add(m.clone());
-        }
-
-        return result;
+    public List<Message> getMessages() {
+        return messages;
 
     }
 
-    public void setMessages(List<Msg> msg){
-        this.messages.clear();
-
-        for(Msg m: msg){
-            this.messages.add(m.clone());
-        }
+    public void setMessages(List<Message> message){
+        this.messages = message;
     }
 
     public String toString(){

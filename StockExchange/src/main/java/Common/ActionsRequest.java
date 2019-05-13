@@ -1,6 +1,6 @@
 package Common;
 
-public class ActionsRequest extends Msg{
+public class ActionsRequest extends Message {
     private String company;
 
     public ActionsRequest(int t, String cl, String cm){

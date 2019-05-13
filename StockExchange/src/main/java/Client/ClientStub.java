@@ -1,21 +1,16 @@
 package Client;
 
 import Common.*;
-import io.atomix.cluster.messaging.ManagedMessagingService;
 import io.atomix.utils.net.Address;
 import io.atomix.utils.serializer.Serializer;
 import spread.SpreadConnection;
 import spread.SpreadException;
 import spread.SpreadGroup;
 import spread.SpreadMessage;
-import java.net.Inet4Address;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 public class ClientStub {
 
@@ -48,8 +43,8 @@ public class ClientStub {
                 .withTypes(ActionsRequest.class)
                 .withTypes(BuyReply.class)
                 .withTypes(BuyRequest.class)
-                .withTypes(CompanysReply.class)
-                .withTypes(CompanysRequest.class)
+                .withTypes(CompaniesReply.class)
+                .withTypes(CompaniesRequest.class)
                 .withTypes(SellReply.class)
                 .withTypes(SellRequest.class)
                 .build();
@@ -127,7 +122,7 @@ public class ClientStub {
     public void handleSaldo(final Address origin, final byte[] bytes) {
         final SaldoReply reply = this.s.decode(bytes);
 
-        // verificar se é possivel aceitar a Msg
+        // verificar se é possivel aceitar a Message
         if(reply.getMsg_id() <= msg_accept[0]){
             System.out.println("Recebi de "+origin+" a "+reply.toString());
 
@@ -149,7 +144,7 @@ public class ClientStub {
     public void handleMov(final Address origin, final byte[] bytes) {
         final MovReply reply = this.s.decode(bytes);
 
-        // verificar se é possivel aceitar a Msg
+        // verificar se é possivel aceitar a Message
         if(reply.getMsg_id() <= msg_accept[0]){
             System.out.println("Recebi de "+origin+" a "+reply.toString());
 

@@ -1,6 +1,6 @@
 package Common;
 
-public class EstadoRequest extends Msg{
+public class EstadoRequest extends Message {
     private int id;
     private int nextMsg;
 
