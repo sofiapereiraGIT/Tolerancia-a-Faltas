@@ -16,4 +16,9 @@ public class Msg {
     public String getClientName() {
         return this.clientName;
     }
+
+    public Msg clone(){
+        Msg m = new Msg(this.transactionID, this.clientName);
+        return clone();
+    }
 }

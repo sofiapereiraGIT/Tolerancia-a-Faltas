@@ -1,39 +1,39 @@
 package Common;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 public class EstadoReply extends Msg{
     private int serverId;
-    private Map<String, Long> companys;
+    private List<Msg> messages;
 
-    public EstadoReply(int server, Map<String, Long> cm){
+    public EstadoReply(int server, List<Msg> m){
         super(-1,"");
         this.serverId = server;
-        this.companys = new HashMap<>();
-        this.setCompanys(cm);
+        this.messages = new ArrayList<>();
+        this.setMessages(m);
     }
 
     public int getServerId(){
         return this.serverId;
     }
 
-    public Map<String, Long> getCompanys() {
-        Map<String, Long> result = new HashMap<String, Long>();
+    public List<Msg> getMessages() {
+        List<Msg> result = new ArrayList<>();
 
-        for(Map.Entry<String, Long> entry: this.companys.entrySet()){
-            result.put(entry.getKey(), entry.getValue());
+        for(Msg m: this.messages){
+            result.add(m.clone());
         }
 
         return result;
 
     }
 
-    public void setCompanys(Map<String, Long> cm){
-        this.companys.clear();
+    public void setMessages(List<Msg> msg){
+        this.messages.clear();
 
-        for(Map.Entry<String, Long> entry: cm.entrySet()){
-            this.companys.put(entry.getKey(), entry.getValue());
+        for(Msg m: msg){
+            this.messages.add(m.clone());
         }
     }
 
@@ -41,10 +41,6 @@ public class EstadoReply extends Msg{
         StringBuilder sb = new StringBuilder();
 
         sb.append("EstadoReply para o servidor ").append(this.getServerId());
-
-        for(Map.Entry<String, Long> entry: this.companys.entrySet()){
-            sb.append(entry.getKey()).append(": ").append(entry.getValue()).append(" actions.\n");
-        }
 
         return sb.toString();
     }

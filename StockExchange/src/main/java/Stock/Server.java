@@ -9,6 +9,7 @@ import java.io.InterruptedIOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class Server{
@@ -16,6 +17,8 @@ public class Server{
     private Serializer s;
     private int id;
     private boolean estado;
+    private List<Msg> messages;
+    private int nextMsg;
 
     public Server(int id){
         this.stock = new StockImp();
@@ -31,53 +34,64 @@ public class Server{
                 .build();
         this.id = id;
         this.estado = false;
+        this.messages = new ArrayList<>();
+        this.nextMsg = 0;
     }
 
     public void setEstado(boolean b){
         this.estado = b;
     }
 
-    //todo : fazer o serializable
     public static void main(final String[] args){
-        Server bs = new Server(Integer.parseInt(args[0]));
+        Server se = new Server(Integer.parseInt(args[0]));
         ArrayList<Msg> mensagens = new ArrayList<>();
 
         try {
-            SpreadConnection connection = new SpreadConnection();
-            connection.connect(InetAddress.getByName("localhost"), 0, args[1], false, true);
 
             SpreadGroup group = new SpreadGroup();
             group.join(connection, "servergroup");
 
-            EstadoRequest est = new EstadoRequest(bs.id);
+            EstadoRequest est = new EstadoRequest(se.id, se.nextMsg);
             System.out.println(est.toString());
             SpreadMessage msgE = new SpreadMessage();
-            msgE.setData(bs.s.encode(est));
+            msgE.setData(se.s.encode(est));
             msgE.addGroup("servergroup");
             msgE.setReliable();
             connection.multicast(msgE);
 
-            Thread tr = new Thread(new Timer(bs));
+            Thread tr = new Thread(new Timer(se));
             tr.start();
 
             while(true) {
                 SpreadMessage message = connection.receive();
-                Msg mensagem = bs.s.decode(message.getData());
+                Msg mensagem = se.s.decode(message.getData());
 
-                if(!bs.estado){
+                if(!se.estado){
                     if(mensagem instanceof EstadoReply){
                         EstadoReply estM = (EstadoReply) mensagem;
                         System.out.println(estM.toString());
 
-                        if(estM.getServerId() == bs.id){
-                            bs.stock.setCompanys(estM.getCompanys());
-                            bs.estado = true;
+                        if(estM.getServerId() == se.id){
+                            List<Msg> result = estM.getMessages();
+
+                            for(Msg m: result){
+                                se.processMsg(m);
+                                se.nextMsg++;
+                            }
+
+                            se.estado = true;
                             tr.interrupt();
 
                             for(int i=0; i<mensagens.size(); i++){
-                                SpreadMessage msg = bs.processMsg(mensagens.get(i));
+                                Msg m = se.processMsg(mensagens.get(i));
+
+                                SpreadMessage msg = new SpreadMessage();
+                                msg.setData(se.s.encode(m));
+                                msg.addGroup(m.getClientName());
+
                                 if(msg != null){
                                     msg.setReliable();
+                                    msg.setAgreed();
                                     connection.multicast(msg);
                                 }
                                 mensagens.remove(i);
@@ -90,10 +104,17 @@ public class Server{
                 }
 
                 else {
-                    SpreadMessage msg = bs.processMsg(mensagem);
+                    Msg m = se.processMsg(mensagem);
+
+                    SpreadMessage msg = new SpreadMessage();
+                    msg.setData(se.s.encode(m));
+                    msg.addGroup(m.getClientName());
+
                     if (msg != null) {
                         msg.setReliable();
+                        msg.setAgreed();
                         connection.multicast(msg);
+                        se.nextMsg++;
                     }
                 }
             }
@@ -102,8 +123,8 @@ public class Server{
         }
     }
 
-    public SpreadMessage processMsg(Msg mensagem){
-        SpreadMessage msg = null;
+    public Msg processMsg(Msg mensagem){
+        Msg msg = null;
 
         if(mensagem instanceof ActionsRequest){
             ActionsRequest actionsRequest = (ActionsRequest) mensagem;
@@ -114,9 +135,7 @@ public class Server{
             ActionsReply actionsReply = new ActionsReply(actionsRequest.getTransactionID(), actionsRequest.getClientName(), this.id, company, actions);
             System.out.println(actionsReply.toString());
 
-            msg = new SpreadMessage();
-            msg.setData(this.s.encode(actionsReply));
-            msg.addGroup(actionsRequest.getClientName());
+            msg = actionsReply;
 
         } else if(mensagem instanceof BuyRequest){
             BuyRequest buyRequest = (BuyRequest) mensagem;
@@ -128,9 +147,7 @@ public class Server{
             BuyReply buyReply = new BuyReply(buyRequest.getTransactionID(), buyRequest.getClientName(), this.id, company, result);
             System.out.println(buyReply.toString());
 
-            msg = new SpreadMessage();
-            msg.setData(this.s.encode(buyReply));
-            msg.addGroup(buyRequest.getClientName());
+            msg = buyReply;
 
         } else if(mensagem instanceof CompanysRequest){
             CompanysRequest companysRequest = (CompanysRequest) mensagem;
@@ -140,9 +157,7 @@ public class Server{
             CompanysReply companysReply = new CompanysReply(companysRequest.getTransactionID(), companysRequest.getClientName(), this.id, companys);
             System.out.println(companysReply.toString());
 
-            msg = new SpreadMessage();
-            msg.setData(this.s.encode(companysReply));
-            msg.addGroup(companysRequest.getClientName());
+           msg = companysReply;
 
         } else if(mensagem instanceof SellRequest){
             SellRequest sellRequest = (SellRequest) mensagem;
@@ -154,9 +169,7 @@ public class Server{
             SellReply sellReply = new SellReply(sellRequest.getTransactionID(), sellRequest.getClientName(), this.id, company, result);
             System.out.println(sellReply.toString());
 
-            msg = new SpreadMessage();
-            msg.setData(this.s.encode(sellReply));
-            msg.addGroup(sellRequest.getClientName());
+            msg = sellReply;
 
         } else if(mensagem instanceof EstadoRequest){
             EstadoRequest estadoRequest = (EstadoRequest) mensagem;
@@ -164,14 +177,13 @@ public class Server{
             if(estadoRequest.getId() != this.id){
                 System.out.println(estadoRequest.toString());
 
-                EstadoReply estadoReply = new EstadoReply(estadoRequest.getId(), this.stock.getCompanys());
+                List<Msg> result = this.messages.subList(estadoRequest.getNextMsg(), this.messages.size());
+
+                EstadoReply estadoReply = new EstadoReply(estadoRequest.getId(), result);
                 System.out.println(estadoReply.toString());
 
-                msg = new SpreadMessage();
-                msg.setData(this.s.encode(estadoReply));
-                msg.addGroup("servergroup");
+                msg = estadoReply;
             }
-
         }
 
         return msg;
