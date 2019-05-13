@@ -1,22 +1,19 @@
-package Stock;
+package Client;
 
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
-public class StockImp implements Serializable {
+public class Client {
     private Map<String, Long> companys;
 
-    public StockImp(){
+    public Client(){
         this.companys = new HashMap<String, Long>();
-        this.companys.put("Mango", (long) 500);
-        this.companys.put("Zara", (long) 500);
-        this.companys.put("Nike", (long) 500);
     }
 
-    public StockImp(Map<String, Long> c){
-        this.companys = new HashMap<String, Long>();
-        this.setCompanys(c);
+    public Client(Map<String, Long> cm){
+        this.companys = new HashMap<>();
+        this.setCompanys(cm);
     }
 
     public Map<String, Long> getCompanys() {
@@ -50,37 +47,6 @@ public class StockImp implements Serializable {
         return sb.toString();
     }
 
-    public long actions(String c){
-        if(this.companys.containsKey(c)) return this.companys.get(c);
-        return -1;
-    }
-
-    public boolean sell(String c, long a){
-        if(this.companys.containsKey(c)){
-            long tmp = this.companys.get(c);
-            this.companys.put(c, tmp+a);
-
-            return true;
-        }
-
-        return false;
-    }
-
-    public boolean buy(String c, long a){
-        if(this.companys.containsKey(c)){
-            long tmp = this.companys.get(c);
-
-            if(tmp >= a){
-                this.companys.put(c, tmp-a);
-                return true;
-            }
-
-            return false;
-        }
-
-        return false;
-    }
-
     public void writeInTextFile(String fileName) {
         try {
             PrintWriter fich = new PrintWriter(fileName);
@@ -105,19 +71,19 @@ public class StockImp implements Serializable {
         }
     }
 
-    public StockImp loadState(String fileName) {
-        StockImp stock = new StockImp();
+    public Client loadState(String fileName) {
+        Client c = new Client();
 
         try {
             FileInputStream fis = new FileInputStream(fileName);
             ObjectInputStream ois = new ObjectInputStream(fis);
-            stock = (StockImp) ois.readObject();
+            c = (Client) ois.readObject();
             ois.close();
             fis.close();
         } catch (IOException | ClassNotFoundException e) {
             System.out.println("Could not find previous state.");
         }
 
-        return stock;
+        return c;
     }
 }
