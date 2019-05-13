@@ -5,7 +5,7 @@ import io.atomix.utils.net.Address;
 import java.util.Map;
 import java.util.Random;
 
-public class Main_RandomBuySell {
+public class Main {
     public static void main(final String[] args) {
         final Address cliAddress = Address.from("localhost:"+args[0]);
         final ClientStub stub = new ClientStub(args[0]);
@@ -23,6 +23,9 @@ public class Main_RandomBuySell {
         int randomOperation, randomCompany;
         Map<String, Long> companies;
 
+        //todo mandar companysrequest
+        //todo mandar actionsrequest
+
         for (int i = 0; i < numOps; i++) {
             randomOperation = random.nextInt(2);
             companies = client.getCompanys();
@@ -30,15 +33,6 @@ public class Main_RandomBuySell {
             if(randomOperation==0 && companies.size()==0){
                 randomOperation=1;
             }
-
-            //Testes
-            /*if(i%2==0){
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }*/
 
             switch (randomOperation) {
                 case 0:
