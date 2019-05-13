@@ -1,25 +1,24 @@
 package Client;
 
-import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Client implements Serializable {
-    private Map<String, Long> companys;
+public class Client {
+    private Map<String, Long> myCompanys;
 
     public Client(){
-        this.companys = new HashMap<String, Long>();
+        this.myCompanys = new HashMap<String, Long>();
     }
 
     public Client(Map<String, Long> cm){
-        this.companys = new HashMap<>();
+        this.myCompanys = new HashMap<>();
         this.setCompanys(cm);
     }
 
     public Map<String, Long> getCompanys() {
         Map<String, Long> result = new HashMap<String, Long>();
 
-        for(Map.Entry<String, Long> entry: this.companys.entrySet()){
+        for(Map.Entry<String, Long> entry: this.myCompanys.entrySet()){
             result.put(entry.getKey(), entry.getValue());
         }
 
@@ -28,10 +27,10 @@ public class Client implements Serializable {
     }
 
     public void setCompanys(Map<String, Long> cm){
-        this.companys.clear();
+        this.myCompanys.clear();
 
         for(Map.Entry<String, Long> entry: cm.entrySet()){
-            this.companys.put(entry.getKey(), entry.getValue());
+            this.myCompanys.put(entry.getKey(), entry.getValue());
         }
     }
 
@@ -40,50 +39,35 @@ public class Client implements Serializable {
 
         sb.append("Stocks from this Client.\n");
 
-        for(Map.Entry<String, Long> entry: this.companys.entrySet()){
+        for(Map.Entry<String, Long> entry: this.myCompanys.entrySet()){
             sb.append(entry.getKey()).append(": ").append(entry.getValue()).append(" actions.\n");
         }
 
         return sb.toString();
     }
 
-    public void writeInTextFile(String fileName) {
-        try {
-            PrintWriter fich = new PrintWriter(fileName);
-            fich.println(this.toString());
-            fich.flush();
-            fich.close();
-        } catch (IOException e) {
-            System.out.println("Error saving state in text file.");
+    public void addActionsCompany(String c, long a){
+        if(this.myCompanys.containsKey(c)){
+            long tmp = this.myCompanys.get(c);
+            this.myCompanys.put(c, tmp+a);
+        }
+        else{
+            this.myCompanys.put(c, a);
         }
     }
 
-    public void storeState(String fileName) {
-        try {
-            FileOutputStream fos = new FileOutputStream(fileName);
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(this);
-            oos.flush();
-            oos.close();
-            fos.close();
-        } catch (IOException e) {
-            System.out.println("Error saving state.");
-        }
-    }
+    public boolean removeActionsCompany(String c, long a){
+        if(this.myCompanys.containsKey(c)){
+            long tmp = this.myCompanys.get(c);
 
-    public Client loadState(String fileName) {
-        Client c = new Client();
+            if(tmp >= a){
+                this.myCompanys.put(c, tmp-a);
+                return true;
+            }
 
-        try {
-            FileInputStream fis = new FileInputStream(fileName);
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            c = (Client) ois.readObject();
-            ois.close();
-            fis.close();
-        } catch (IOException | ClassNotFoundException e) {
-            System.out.println("Could not find previous state.");
+            return false;
         }
 
-        return c;
+        return false;
     }
 }

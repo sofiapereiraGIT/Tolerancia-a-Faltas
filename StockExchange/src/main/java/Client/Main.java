@@ -2,6 +2,8 @@ package Client;
 
 import io.atomix.utils.net.Address;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -9,61 +11,110 @@ public class Main {
     public static void main(final String[] args) {
         final Address cliAddress = Address.from("localhost:"+args[0]);
         final ClientStub stub = new ClientStub(args[0]);
-
-        Client client = new Client();
-        client = client.loadState("clientDB-"+args[0]);
+        final Client client = new Client();
 
         System.out.println(client.toString());
         if(client.getCompanys().size()==0){
             System.out.println("You don't have any actions.");
         }
 
-        final int numOps = 5; // Total number of Buy + Sell
+        //--- OPERATIONS ---
+
+        final List<String> companies = new ArrayList<>();
+
+        //CompaniesRequest
+        stub.getCompanies().thenAccept((var) -> {
+            StringBuilder sb = new StringBuilder();
+
+            for(Map.Entry<String, Long> entry : var.entrySet()){
+                sb.append(entry.getKey()).append(": ").append(entry.getValue()).append(" actions.\n");
+                companies.add(entry.getKey());
+            }
+
+            System.out.println(sb.toString());
+        });
+
+        //Actions, Buy and Sell Request
+        final int numOps = 5; // Total number of random requests
         final Random random = new Random();
         int randomOperation, randomCompany;
-        Map<String, Long> companies;
-
-        //todo mandar companysrequest
-        //todo mandar actionsrequest
+        Map<String, Long> clientCompanies;
 
         for (int i = 0; i < numOps; i++) {
-            randomOperation = random.nextInt(2);
-            companies = client.getCompanys();
+            randomOperation = random.nextInt(3);
+            clientCompanies = client.getCompanys();
 
-            if(randomOperation==0 && companies.size()==0){
+            if(randomOperation==2 && clientCompanies.size()==0){
                 randomOperation=1;
             }
 
             switch (randomOperation) {
                 case 0:
                     randomCompany = random.nextInt(companies.size());
+                    String electedCompany = companies.get(randomCompany);
 
-                    System.out.println("Sending sell request");
-                    /* todo
-                    bankStub.saldo().thenAccept((saldoBank) -> {
-                        System.out.println("Saldo response: "+saldoBank);
-                        if(saldoBank != saldo.get())
-                            System.out.println("ERROR. Something went wrong. ATUALIZAR SALDO");
-                        saldo.set(saldoBank);
-                    });*/
+                    System.out.println("Sending actions request for "+electedCompany+".");
+
+                    stub.getActions(electedCompany).thenAccept((var) -> {
+                        StringBuilder sb = new StringBuilder();
+
+                        for(Map.Entry<String, Long> entry : var.entrySet()){ //only one entry
+                            sb.append(entry.getKey()).append(": ").append(entry.getValue()).append(" actions.\n");
+                        }
+
+                        System.out.println(sb.toString());
+                    });
                     break;
 
                 case 1:
-                    //para clientes concorrentes o Mov reply poderia dizer tb o saldo antigo e atual
-                    //para o client conseguir ver o que aconteceu qd faz o Movimento
+                    randomCompany = random.nextInt(companies.size());
+                    final String selectedCompanyBuy = companies.get(randomCompany);
+                    final int randomQuantityBuy = random.nextInt(20);
 
-                    final int qtd = random.nextInt(20)-10;
-                    /* todo
-                    System.out.println("Sending mov request with qtd = "+qtd);
-                    bankStub.mov(qtd).thenAccept((validation) -> {
-                        System.out.println("Mov response: "+validation);
-                        if(validation==true) {
-                            saldo.addAndGet(qtd);
-                            System.out.println("Saldo atualizado. Saldo = "+saldo);
+                    System.out.println("Buying "+randomQuantityBuy+" actions from "+selectedCompanyBuy+".");
+
+                    stub.buy(selectedCompanyBuy, randomQuantityBuy).thenAccept((var) -> {
+                        StringBuilder sb = new StringBuilder();
+
+                        for(Map.Entry<String, Boolean> entry : var.entrySet()){ //only one entry
+                            if(entry.getValue()){
+                                sb.append("Success! You just bought ").append(randomQuantityBuy).append(" actions from ").append(selectedCompanyBuy).append(".\n");
+                                client.addActionsCompany(entry.getKey(), randomQuantityBuy);
+                            }
+                            else{
+                                sb.append("Sorry, it wasn't possible to buy ").append(randomQuantityBuy).append(" actions from ").append(selectedCompanyBuy).append(".\n");
+                            }
                         }
-                        else
-                            System.out.println("Quantidade insuficiente");
-                    });*/
+
+                        System.out.println(sb.toString());
+                    });
+                    break;
+
+                case 2:
+                    randomCompany = random.nextInt(clientCompanies.size());
+                    final String selectedCompanySell = (String) clientCompanies.keySet().toArray()[randomCompany];
+                    final int randomQuantitySell = random.nextInt(Math.toIntExact(clientCompanies.get(selectedCompanySell)));
+
+                    System.out.println("Selling "+randomQuantitySell+" actions from "+selectedCompanySell+".");
+
+                    stub.buy(selectedCompanySell, randomQuantitySell).thenAccept((var) -> {
+                        StringBuilder sb = new StringBuilder();
+
+                        for(Map.Entry<String, Boolean> entry : var.entrySet()){ //only one entry
+                            if(entry.getValue()){
+                                sb.append("Success! You just sold ").append(randomQuantitySell).append(" actions from ").append(selectedCompanySell).append(".\n");
+                                final boolean bool = client.removeActionsCompany(entry.getKey(), randomQuantitySell);
+                                if(!bool){
+                                    sb.append("Something went wrong while selling your actions.\n");
+                                }
+                            }
+                            else{
+                                sb.append("Sorry, it wasn't possible to sell ").append(randomQuantitySell).append(" actions from ").append(selectedCompanySell).append(".\n");
+                            }
+                        }
+
+                        System.out.println(sb.toString());
+                    });
                     break;
 
                 default:
