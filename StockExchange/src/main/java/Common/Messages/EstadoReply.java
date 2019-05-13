@@ -7,8 +7,8 @@ public class EstadoReply extends Message {
     private int serverID;
     private List<Message> messages;
 
-    public EstadoReply(int server, List<Message> m){
-        super(-1,"");
+    public EstadoReply(String c, int server, List<Message> m){
+        super(-1, c);
         this.serverID = server;
         this.messages = new ArrayList<>();
         this.setMessages(m);

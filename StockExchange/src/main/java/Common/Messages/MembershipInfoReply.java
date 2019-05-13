@@ -2,12 +2,13 @@ package Common.Messages;
 
 import java.util.List;
 
-public class MembershipInfo {
+public class MembershipInfoReply extends Message {
     private int serverID;
     private List<String> allActiveServers;
     private int number;
 
-    public MembershipInfo(int s, int n, List<String> list){
+    public MembershipInfoReply(int t, String c, int s, int n, List<String> list){
+        super(t, c);
         this.serverID = s;
         this.number = n;
         this.allActiveServers = list;
@@ -24,7 +25,7 @@ public class MembershipInfo {
     public String toString(){
         StringBuilder sb = new StringBuilder();
 
-        sb.append("--- MembershipInfo ---\n");
+        sb.append("--- MembershipInfoReply ---\n");
         sb.append("From server: ").append(this.serverID).append(".\n");
         sb.append("Number of active servers: ").append(this.number).append(".\n");
         sb.append("All active servers: \n");

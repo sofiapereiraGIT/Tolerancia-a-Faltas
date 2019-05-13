@@ -125,11 +125,20 @@ public class Refresher implements Runnable{
                     result = this.server.getMessages().subList(estadoRequest.getNextMsg(), this.server.getMessages().size());
                 }
 
-                EstadoReply estadoReply = new EstadoReply(estadoRequest.getServerID(), result);
+                EstadoReply estadoReply = new EstadoReply(estadoRequest.getClientName(), estadoRequest.getServerID(), result);
                 System.out.println(estadoReply.toString());
 
                 message = estadoReply;
             }
+        } else if(mensagem instanceof MembershipInfoRequest) {
+            MembershipInfoRequest mir = (MembershipInfoRequest) mensagem;
+            System.out.println(mir.toString());
+            this.server.addClientName(mir.getClientName());
+
+            int number = this.server.getLatestMembershipInfo().getMembershipInfo().getMembers().length;
+            List<String> names = this.server.getServersNames(this.server.getLatestMembershipInfo());
+            MembershipInfoReply mi = new MembershipInfoReply(mir.getTransactionID(), mir.getClientName(), this.server.getId(), number, names);
+            message = mi;
         }
 
         return message;
