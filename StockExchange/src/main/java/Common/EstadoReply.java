@@ -1,50 +1,36 @@
 package Common;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
-public class EstadoReply extends Msg{
+public class EstadoReply extends Message {
     private int serverId;
-    private Map<String, Long> companys;
+    private List<Message> messages;
 
-    public EstadoReply(int server, Map<String, Long> cm){
+    public EstadoReply(int server, List<Message> m){
         super(-1,"");
         this.serverId = server;
-        this.companys = new HashMap<>();
-        this.setCompanys(cm);
+        this.messages = new ArrayList<>();
+        this.setMessages(m);
     }
 
     public int getServerId(){
         return this.serverId;
     }
 
-    public Map<String, Long> getCompanys() {
-        Map<String, Long> result = new HashMap<String, Long>();
-
-        for(Map.Entry<String, Long> entry: this.companys.entrySet()){
-            result.put(entry.getKey(), entry.getValue());
-        }
-
-        return result;
+    public List<Message> getMessages() {
+        return messages;
 
     }
 
-    public void setCompanys(Map<String, Long> cm){
-        this.companys.clear();
-
-        for(Map.Entry<String, Long> entry: cm.entrySet()){
-            this.companys.put(entry.getKey(), entry.getValue());
-        }
+    public void setMessages(List<Message> message){
+        this.messages = message;
     }
 
     public String toString(){
         StringBuilder sb = new StringBuilder();
 
         sb.append("EstadoReply para o servidor ").append(this.getServerId());
-
-        for(Map.Entry<String, Long> entry: this.companys.entrySet()){
-            sb.append(entry.getKey()).append(": ").append(entry.getValue()).append(" actions.\n");
-        }
 
         return sb.toString();
     }

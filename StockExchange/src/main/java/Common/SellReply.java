@@ -1,6 +1,6 @@
 package Common;
 
-public class SellReply extends Msg{
+public class SellReply extends Message {
     private int serverID;
     private String company;
     private boolean result;

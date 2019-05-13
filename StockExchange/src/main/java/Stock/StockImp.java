@@ -4,7 +4,7 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
-public class StockImp implements Serializable {
+public class StockImp {
     private Map<String, Long> companys;
 
     public StockImp(){
@@ -79,45 +79,5 @@ public class StockImp implements Serializable {
         }
 
         return false;
-    }
-
-    public void writeInTextFile(String fileName) {
-        try {
-            PrintWriter fich = new PrintWriter(fileName);
-            fich.println(this.toString());
-            fich.flush();
-            fich.close();
-        } catch (IOException e) {
-            System.out.println("Error saving state in text file.");
-        }
-    }
-
-    public void storeState(String fileName) {
-        try {
-            FileOutputStream fos = new FileOutputStream(fileName);
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(this);
-            oos.flush();
-            oos.close();
-            fos.close();
-        } catch (IOException e) {
-            System.out.println("Error saving state.");
-        }
-    }
-
-    public StockImp loadState(String fileName) {
-        StockImp stock = new StockImp();
-
-        try {
-            FileInputStream fis = new FileInputStream(fileName);
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            stock = (StockImp) ois.readObject();
-            ois.close();
-            fis.close();
-        } catch (IOException | ClassNotFoundException e) {
-            System.out.println("Could not find previous state.");
-        }
-
-        return stock;
     }
 }
