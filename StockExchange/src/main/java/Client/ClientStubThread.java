@@ -64,11 +64,9 @@ public class ClientStubThread implements Runnable {
         Map<Integer, Integer> receivedFromServers = new HashMap<>();
         List<String> allActiveServers = new ArrayList<>();
 
-        //todo send membershipInfoRequest id=0
-        /* espera de 4 servidores
-        - 1 morre -> espero por 3
-        - 1 entra -> espero por 4
-        - 1 morre -> depende se está ou não*/
+        //First message sent
+        byte[] msgBytes = this.s.encode(new MembershipInfoRequest(0, this.myGroupName));
+        this.middleware.sendMessage(msgBytes, "servergroup");
 
         while (true) {
             SpreadMessage spreadMessage = this.middleware.receiveMessage();
@@ -130,6 +128,10 @@ public class ClientStubThread implements Runnable {
                     }
 
                     //todo ver se pode fazer completes
+                    /* espera de 4 servidores
+                    - 1 morre -> espero por 3
+                    - 1 entra -> espero por 4
+                    - 1 morre -> depende se está ou não*/
                 }
             } else {
                 System.out.println("New membership message from " + spreadMessage.getMembershipInfo().getGroup());

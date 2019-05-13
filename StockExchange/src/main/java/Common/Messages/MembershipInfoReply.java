@@ -25,6 +25,7 @@ public class MembershipInfoReply extends Message {
     public String toString(){
         StringBuilder sb = new StringBuilder();
 
+        sb.append(super.toString());
         sb.append("--- MembershipInfoReply ---\n");
         sb.append("From server: ").append(this.serverID).append(".\n");
         sb.append("Number of active servers: ").append(this.number).append(".\n");

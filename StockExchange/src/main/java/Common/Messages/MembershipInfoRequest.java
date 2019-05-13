@@ -9,6 +9,7 @@ public class MembershipInfoRequest extends Message{
     public String toString(){
         StringBuilder sb = new StringBuilder();
 
+        sb.append(super.toString());
         sb.append("--- MembershipInfoRequest ---\n");
         sb.append("From client: ").append(this.getClientName()).append(".\n");
         return sb.toString();
