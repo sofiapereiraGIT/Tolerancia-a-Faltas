@@ -32,6 +32,9 @@ public class Server implements Serializable {
                 .withTypes(CompaniesReply.class)
                 .withTypes(SellRequest.class)
                 .withTypes(SellReply.class)
+                .withTypes(EstadoRequest.class)
+                .withTypes(EstadoReply.class)
+                .withTypes(MembershipInfo.class)
                 .build();
         this.id = id;
         this.messages = new ArrayList<>();
