@@ -46,6 +46,7 @@ public class ClientStub {
                 .withTypes(EstadoReply.class)
                 .withTypes(EstadoRequest.class)
                 .withTypes(MembershipInfoReply.class)
+                .withTypes(ArrayList.class)
                 .build();
 
         this.transactionID = 0;
@@ -76,6 +77,7 @@ public class ClientStub {
         this.waitingFromServers.put(this.transactionID, new ArrayList<>(this.allActiveServers));
         this.lockAllActiveServers.unlock();
         this.lockWaitingFromServers.unlock();
+
 
         byte[] msg = this.s.encode(new CompaniesRequest(this.transactionID, this.myGroupName));
         this.middleware.sendMessage(msg, "servergroup");

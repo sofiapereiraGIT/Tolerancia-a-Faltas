@@ -32,6 +32,7 @@ public class Refresher implements Runnable{
                 .withTypes(EstadoRequest.class)
                 .withTypes(MembershipInfoReply.class)
                 .withTypes(MembershipInfoRequest.class)
+                .withTypes(ArrayList.class)
                 .build();
     }
 

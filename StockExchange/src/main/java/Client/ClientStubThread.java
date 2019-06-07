@@ -60,6 +60,7 @@ public class ClientStubThread implements Runnable {
                 .withTypes(EstadoRequest.class)
                 .withTypes(MembershipInfoReply.class)
                 .withTypes(MembershipInfoRequest.class)
+                .withTypes(ArrayList.class)
                 .build();
 
         this.CFcompanies = CFcompanies;
@@ -161,7 +162,8 @@ public class ClientStubThread implements Runnable {
     private void serversInfo(MembershipInfoReply reply) {
         //Atualizar allActiveServers
         this.lockAllActiveServers.lock();
-            this.allActiveServers = reply.getAllActiveServers();
+            this.allActiveServers.clear();
+            this.allActiveServers.addAll(reply.getAllActiveServers());
             List<String> auxAllActiveServers = new ArrayList<>(this.allActiveServers);
             System.out.println("Current active servers: "+auxAllActiveServers.toString());
         this.lockAllActiveServers.unlock();

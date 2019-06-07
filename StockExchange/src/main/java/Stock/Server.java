@@ -278,6 +278,7 @@ public class Server implements Serializable {
                     .withTypes(EstadoRequest.class)
                     .withTypes(MembershipInfoReply.class)
                     .withTypes(MembershipInfoRequest.class)
+                    .withTypes(ArrayList.class)
                     .build();
 
         Middleware middlewareS = new Middleware("sender_s"+args[0], "servergroup");
