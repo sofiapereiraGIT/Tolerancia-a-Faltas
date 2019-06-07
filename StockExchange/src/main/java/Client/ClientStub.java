@@ -4,7 +4,9 @@ import Common.*;
 import Common.Messages.*;
 import io.atomix.utils.serializer.Serializer;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.ReentrantLock;
@@ -15,15 +17,21 @@ public class ClientStub {
     private final Serializer s;
     private int transactionID;
 
-    private final Map<Integer, CompletableFuture<Map<String, Long>>> CFcompanies;
-    private final Map<Integer, CompletableFuture<Map<String, Long>>> CFactions;
-    private final Map<Integer, CompletableFuture<Map<String, Boolean>>> CFbuy;
-    private final Map<Integer, CompletableFuture<Map<String, Boolean>>> CFsell;
+    private final Map<Integer, CompletableFuture<Map<String, Long>>> CFcompanies = new HashMap<>();
+    private final Map<Integer, CompletableFuture<Map<String, Long>>> CFactions = new HashMap<>();
+    private final Map<Integer, CompletableFuture<Map<String, Boolean>>> CFbuy = new HashMap<>();
+    private final Map<Integer, CompletableFuture<Map<String, Boolean>>> CFsell = new HashMap<>();
 
     private final ReentrantLock lockCFcompanies = new ReentrantLock();
     private final ReentrantLock lockCFactions = new ReentrantLock();
     private final ReentrantLock lockCFbuy = new ReentrantLock();
     private final ReentrantLock lockCFsell = new ReentrantLock();
+
+    private final Map<Integer, List<String>> waitingFromServers = new HashMap<>();
+    private final List<String> allActiveServers = new ArrayList<>();
+
+    private final ReentrantLock lockWaitingFromServers = new ReentrantLock();
+    private final ReentrantLock lockAllActiveServers = new ReentrantLock();
 
     ClientStub(String port){
         this.myGroupName = "stubgroup"+port;
@@ -45,12 +53,10 @@ public class ClientStub {
 
         this.transactionID = 0;
 
-        this.CFcompanies = new HashMap<>();
-        this.CFactions = new HashMap<>();
-        this.CFbuy = new HashMap<>();
-        this.CFsell = new HashMap<>();
-
-        new Thread(new ClientStubThread(port, this.CFcompanies, this.CFactions, this.CFbuy, this.CFsell, this.lockCFcompanies, this.lockCFactions, this.lockCFbuy, this.lockCFsell))
+        new Thread(new ClientStubThread(port, this.CFcompanies, this.CFactions, this.CFbuy, this.CFsell,
+                this.lockCFcompanies, this.lockCFactions, this.lockCFbuy, this.lockCFsell,
+                this.waitingFromServers, this.allActiveServers,
+                this.lockWaitingFromServers, this.lockAllActiveServers))
                 .start();
 
         try {
@@ -68,6 +74,12 @@ public class ClientStub {
         this.CFcompanies.put(this.transactionID, cf);
         this.lockCFcompanies.unlock();
 
+        this.lockAllActiveServers.lock();
+        this.lockWaitingFromServers.lock();
+        this.waitingFromServers.put(this.transactionID, new ArrayList<>(this.allActiveServers));
+        this.lockAllActiveServers.unlock();
+        this.lockWaitingFromServers.unlock();
+
         byte[] msg = this.s.encode(new CompaniesRequest(this.transactionID, this.myGroupName));
         this.middleware.sendMessage(msg, "servergroup");
 
@@ -81,6 +93,12 @@ public class ClientStub {
         this.lockCFactions.lock();
         this.CFactions.put(this.transactionID, cf);
         this.lockCFactions.unlock();
+
+        this.lockAllActiveServers.lock();
+        this.lockWaitingFromServers.lock();
+        this.waitingFromServers.put(this.transactionID, new ArrayList<>(this.allActiveServers));
+        this.lockAllActiveServers.unlock();
+        this.lockWaitingFromServers.unlock();
 
         byte[] msg = this.s.encode(new ActionsRequest(this.transactionID, this.myGroupName, companyName));
         this.middleware.sendMessage(msg, "servergroup");
@@ -96,6 +114,12 @@ public class ClientStub {
         this.CFbuy.put(this.transactionID, cf);
         this.lockCFbuy.unlock();
 
+        this.lockAllActiveServers.lock();
+        this.lockWaitingFromServers.lock();
+        this.waitingFromServers.put(this.transactionID, new ArrayList<>(this.allActiveServers));
+        this.lockAllActiveServers.unlock();
+        this.lockWaitingFromServers.unlock();
+
         byte[] msg = this.s.encode(new BuyRequest(this.transactionID, this.myGroupName, companyName, actionsQuantity));
         this.middleware.sendMessage(msg, "servergroup");
 
@@ -109,6 +133,12 @@ public class ClientStub {
         this.lockCFsell.lock();
         this.CFsell.put(this.transactionID, cf);
         this.lockCFsell.unlock();
+
+        this.lockAllActiveServers.lock();
+        this.lockWaitingFromServers.lock();
+        this.waitingFromServers.put(this.transactionID, new ArrayList<>(this.allActiveServers));
+        this.lockAllActiveServers.unlock();
+        this.lockWaitingFromServers.unlock();
 
         byte[] msg = this.s.encode(new SellRequest(this.transactionID, this.myGroupName, companyName, actionsQuantity));
         this.middleware.sendMessage(msg, "servergroup");

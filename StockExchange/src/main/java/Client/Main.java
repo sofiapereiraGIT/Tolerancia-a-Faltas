@@ -96,7 +96,7 @@ public class Main {
 
                     System.out.println("Selling "+randomQuantitySell+" actions from "+selectedCompanySell+".");
 
-                    stub.buy(selectedCompanySell, randomQuantitySell).thenAccept((var) -> {
+                    stub.sell(selectedCompanySell, randomQuantitySell).thenAccept((var) -> {
                         StringBuilder sb = new StringBuilder();
 
                         for(Map.Entry<String, Boolean> entry : var.entrySet()){ //only one entry
