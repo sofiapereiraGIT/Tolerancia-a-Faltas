@@ -14,14 +14,13 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class Server implements Serializable {
     private StockImp stock;
-    private Serializer s;
     private int id;
     private List<Message> messages;
     private List<Message> notProcessedMsg;
     private int nextMsg;
     private boolean waiting;
     private List<String> clientNames;
-    private SpreadMessage latestMembershipInfo;
+    private List<String> latestMembershipInfo;
 
     private ReentrantLock lockStock;
     private ReentrantLock lockMessages;
@@ -33,26 +32,13 @@ public class Server implements Serializable {
 
     public Server(int id){
         this.stock = new StockImp();
-        this.s = Serializer.builder()
-                .withTypes(ActionsReply.class)
-                .withTypes(ActionsRequest.class)
-                .withTypes(BuyReply.class)
-                .withTypes(BuyRequest.class)
-                .withTypes(CompaniesReply.class)
-                .withTypes(CompaniesRequest.class)
-                .withTypes(SellReply.class)
-                .withTypes(SellRequest.class)
-                .withTypes(EstadoReply.class)
-                .withTypes(EstadoRequest.class)
-                .withTypes(MembershipInfoReply.class)
-                .build();
         this.id = id;
         this.messages = new ArrayList<>();
         this.notProcessedMsg = new ArrayList<>();
         this.nextMsg = 0;
         this.waiting = true;
         this.clientNames = new ArrayList<>();
-        this.latestMembershipInfo = new SpreadMessage();
+        this.latestMembershipInfo = new ArrayList<>();
 
         this.lockStock = new ReentrantLock();
         this.lockMessages = new ReentrantLock();
@@ -64,11 +50,7 @@ public class Server implements Serializable {
     }
 
     public StockImp getStock() {
-        this.lockStock.lock();
-        StockImp result = this.stock;
-        this.lockStock.unlock();
-
-        return result;
+        return this.stock;
     }
 
     public int getId() {
@@ -76,89 +58,56 @@ public class Server implements Serializable {
     }
 
     public List<Message> getMessages() {
-        this.lockMessages.lock();
-        List<Message> result = this.messages;
-        this.lockMessages.unlock();
+        return this.messages;
+    }
 
-        return result;
+    public Message getMessage(){
+        return this.messages.get(this.getNextMsg());
     }
 
     public List<Message> getNotProcessedMsg(){
-        this.lockNotProcessedMsg.lock();
-        List<Message> result = this.notProcessedMsg;
-        this.lockNotProcessedMsg.unlock();
-
-        return result;
+        return this.notProcessedMsg;
     }
 
     public int getNextMsg() {
-        this.lockNextMsg.lock();
-        int result = this.nextMsg;
-        this.lockNextMsg.unlock();
-
-        return result;
+        return this.nextMsg;
     }
 
     public void setNextMsg(int nextMsg) {
-        this.lockNextMsg.lock();
         this.nextMsg = nextMsg;
-        this.lockNextMsg.unlock();
-    }
-
-    public Serializer getS() {
-        return this.s;
     }
 
     public boolean isWaiting(){
-        this.lockWaiting.lock();
-        boolean result = this.waiting;
-        this.lockWaiting.unlock();
-
-        return result;
+        return this.waiting;
     }
 
     public void setWaiting(boolean b){
-        this.lockWaiting.lock();
         this.waiting = b;
-        this.lockWaiting.unlock();
     }
 
     public List<String> getClientNames(){
-        this.lockClientNames.lock();
-        List<String> result = this.clientNames;
-        this.lockClientNames.unlock();
-
-        return result;
+        return this.clientNames;
     }
 
-    public SpreadMessage getLatestMembershipInfo(){
-        this.lockInfo.lock();
-        SpreadMessage result = this.latestMembershipInfo;
-        this.lockInfo.unlock();
+    public List<String> getLatestMembershipInfo(){
+        List<String> result = new ArrayList<>(this.latestMembershipInfo);
 
         return result;
     }
 
     public void setLatestMembershipInfo(SpreadMessage sm){
-        this.lockInfo.lock();
-        this.latestMembershipInfo = sm;
-        this.lockInfo.unlock();
+        this.latestMembershipInfo = getServersNames(sm);
     }
 
     public void addMsg(Message m){
-        this.lockMessages.lock();
         this.messages.add(m);
-        this.lockMessages.unlock();
     }
 
     public void addNotProcessedMsg(Message m){
-        this.lockNotProcessedMsg.lock();
         this.notProcessedMsg.add(m);
-        this.lockNotProcessedMsg.unlock();
     }
 
     public void removeNotProcessedMsg(Message m){
-        this.lockNotProcessedMsg.lock();
         for(int i=0; i<this.notProcessedMsg.size(); i++){
             Message tmp = this.notProcessedMsg.get(i);
             if(tmp.getTransactionID() == m.getTransactionID() && tmp.getClientName() == m.getClientName()){
@@ -166,13 +115,10 @@ public class Server implements Serializable {
                 break;
             }
         }
-        this.lockNotProcessedMsg.unlock();
     }
 
     public void addClientName(String name){
-        this.lockClientNames.lock();
         if(!this.clientNames.contains(name)) this.clientNames.add(name);
-        this.lockClientNames.unlock();
     }
 
     public List<String> getServersNames(SpreadMessage msg){
@@ -181,13 +127,11 @@ public class Server implements Serializable {
         for(SpreadGroup g : msg.getMembershipInfo().getMembers()){
             for(int i=1; i<g.toString().length(); i++){
                 if (g.toString().charAt(i)=='#'){
-                    i=g.toString().length();
-                }
-                else {
-                    String serverName = g.toString().substring(1,i+1);
+                    String serverName = g.toString().substring(1,i);
                     if(serverName.charAt(0)=='s'){
                         allActiveServers.add(serverName);
                     }
+                    i=g.toString().length();
                 }
             }
         }
@@ -195,78 +139,74 @@ public class Server implements Serializable {
         return allActiveServers;
     }
 
+    public ReentrantLock getLockStock() {
+        return lockStock;
+    }
+
+    public ReentrantLock getLockMessages() {
+        return lockMessages;
+    }
+
+    public ReentrantLock getLockNotProcessedMsg() {
+        return lockNotProcessedMsg;
+    }
+
+    public ReentrantLock getLockNextMsg() {
+        return lockNextMsg;
+    }
+
+    public ReentrantLock getLockWaiting() {
+        return lockWaiting;
+    }
+
+    public ReentrantLock getLockClientNames() {
+        return lockClientNames;
+    }
+
+    public ReentrantLock getLockInfo() {
+        return lockInfo;
+    }
+
+    public void lockAll(){
+        this.lockStock.lock();
+        this.lockMessages.lock();
+        this.lockNotProcessedMsg.lock();
+        this.lockNextMsg.lock();
+        this.lockWaiting.lock();
+        this.lockClientNames.lock();
+        this.lockInfo.lock();
+    }
+
+    public void unlockAll(){
+        this.lockStock.unlock();
+        this.lockMessages.unlock();
+        this.lockNotProcessedMsg.unlock();
+        this.lockNextMsg.unlock();
+        this.lockWaiting.unlock();
+        this.lockClientNames.unlock();
+        this.lockInfo.unlock();
+    }
+
     synchronized void writeInTextFile(String fileName) {
         try {
-            this.lockClientNames.lock();
-            this.lockNotProcessedMsg.lock();
-            this.lockMessages.lock();
-            this.lockInfo.lock();
-            this.lockWaiting.lock();
-            this.lockNextMsg.lock();
-            this.lockStock.lock();
-
             PrintWriter fich = new PrintWriter(fileName);
             fich.println(this.toString());
             fich.flush();
             fich.close();
-
-            this.lockStock.unlock();
-            this.lockNextMsg.unlock();
-            this.lockWaiting.unlock();
-            this.lockInfo.unlock();
-            this.lockMessages.unlock();
-            this.lockNotProcessedMsg.unlock();
-            this.lockClientNames.unlock();
-
         } catch (IOException e) {
-
-            this.lockStock.unlock();
-            this.lockNextMsg.unlock();
-            this.lockWaiting.unlock();
-            this.lockInfo.unlock();
-            this.lockMessages.unlock();
-            this.lockNotProcessedMsg.unlock();
-            this.lockClientNames.unlock();
-
             System.out.println("Error saving state in text file.");
         }
     }
 
     synchronized void storeState(String fileName) {
         try {
-            this.lockClientNames.lock();
-            this.lockNotProcessedMsg.lock();
-            this.lockMessages.lock();
-            this.lockInfo.lock();
-            this.lockWaiting.lock();
-            this.lockNextMsg.lock();
-            this.lockStock.lock();
-
             FileOutputStream fos = new FileOutputStream(fileName);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
             oos.writeObject(this);
             oos.flush();
             oos.close();
             fos.close();
-
-            this.lockStock.unlock();
-            this.lockNextMsg.unlock();
-            this.lockWaiting.unlock();
-            this.lockInfo.unlock();
-            this.lockMessages.unlock();
-            this.lockNotProcessedMsg.unlock();
-            this.lockClientNames.unlock();
-
         } catch (IOException e) {
-
-            this.lockStock.unlock();
-            this.lockNextMsg.unlock();
-            this.lockWaiting.unlock();
-            this.lockInfo.unlock();
-            this.lockMessages.unlock();
-            this.lockNotProcessedMsg.unlock();
-            this.lockClientNames.unlock();
-
             System.out.println("Error saving state.");
         }
     }
@@ -290,8 +230,24 @@ public class Server implements Serializable {
     public static void main(final String[] args){
         int id = Integer.parseInt(args[0]);
         Server se = loadState(id, "server"+id+"DB");
-        Middleware middlewareS = new Middleware("sender_server"+args[0], "servergroup");
-        Middleware middlewareR = new Middleware("receiver_server"+args[0], "servergroup");
+
+        Serializer s = Serializer.builder()
+                    .withTypes(ActionsReply.class)
+                    .withTypes(ActionsRequest.class)
+                    .withTypes(BuyReply.class)
+                    .withTypes(BuyRequest.class)
+                    .withTypes(CompaniesReply.class)
+                    .withTypes(CompaniesRequest.class)
+                    .withTypes(SellReply.class)
+                    .withTypes(SellRequest.class)
+                    .withTypes(EstadoReply.class)
+                    .withTypes(EstadoRequest.class)
+                    .withTypes(MembershipInfoReply.class)
+                    .withTypes(MembershipInfoRequest.class)
+                    .build();
+
+        Middleware middlewareS = new Middleware("sender_s"+args[0], "servergroup");
+        Middleware middlewareR = new Middleware("receiv_s"+args[0], "servergroup");
 
         SpreadMessage spreadMessage = middlewareR.receiveMessage();
         se.setLatestMembershipInfo(spreadMessage);
@@ -301,18 +257,18 @@ public class Server implements Serializable {
             System.out.println(g.toString());
         }
 
-        if(spreadMessage.getMembershipInfo().getMembers().length == 1){
+        if(spreadMessage.getMembershipInfo().getMembers().length == 2){
             se.setWaiting(false);
             System.out.println("No need to wait. I am alone.");
         }
         else {
             EstadoRequest est = new EstadoRequest("servergroup", se.getId(), se.getNextMsg());
             System.out.println(est.toString());
-            middlewareS.sendMessage(se.getS().encode(est), "servergroup");
+            middlewareS.sendMessage(s.encode(est), "servergroup");
         }
 
-        Thread refresher1 = new Thread(new Refresher(se, middlewareS));
-        Thread refresher2 = new Thread(new Refresher(se, middlewareS));
+        Thread refresher1 = new Thread(new Refresher(1, se, middlewareS));
+        Thread refresher2 = new Thread(new Refresher(2, se, middlewareS));
         refresher1.start();
         refresher2.start();
 
@@ -322,24 +278,40 @@ public class Server implements Serializable {
             SpreadMessage msg = middlewareR.receiveMessage();
 
             if(msg.isRegular()){
-                Message m = se.getS().decode(msg.getData());
+                Message m = s.decode(msg.getData());
 
+                se.getLockWaiting().lock();
                 if(se.isWaiting()){
-                    if(m instanceof EstadoReply && ((EstadoReply) m).getServerId() == se.getId()) se.addMsg(m);
+                    if(m instanceof EstadoReply && ((EstadoReply) m).getServerId() == se.getId()){
+                        se.getLockMessages().lock();
+                        se.addMsg(m);
+                        se.getLockMessages().unlock();
+                    }
                     else{
                         if(!guardar && m instanceof EstadoRequest && ((EstadoRequest) m).getServerID() == se.getId()) guardar = true;
-                        if(guardar) se.addNotProcessedMsg(m);
+                        if(guardar){
+                            se.getLockNotProcessedMsg().lock();
+                            se.addNotProcessedMsg(m);
+                            se.getLockNotProcessedMsg().unlock();
+                        }
                     }
                 }
                 else{
+                    se.getLockMessages().lock();
                     se.addMsg(m);
+                    se.getLockMessages().unlock();
                 }
+                se.getLockWaiting().unlock();
 
+                se.lockAll();
                 se.storeState("server"+id+"DB");
                 se.writeInTextFile("server"+id+"TXT");
+                se.unlockAll();
             }
             else{
+                se.getLockInfo().lock();
                 se.setLatestMembershipInfo(spreadMessage);
+                se.getLockInfo().unlock();
 
                 System.out.println("\nNew membership message from " + spreadMessage.getMembershipInfo().getGroup());
                 for(SpreadGroup g : spreadMessage.getMembershipInfo().getMembers()){
@@ -347,17 +319,22 @@ public class Server implements Serializable {
                 }
 
                 int number = spreadMessage.getMembershipInfo().getMembers().length;
-                if(number == 1){
+                if(number == 2){
+                    se.getLockWaiting().lock();
                     if(se.isWaiting()){
                         se.setWaiting(false);
                         System.out.println("Stoped waiting");
                     }
+                    se.getLockWaiting().unlock();
                 }
 
                 MembershipInfoReply mi = new MembershipInfoReply(-1, "", id, number, se.getServersNames(spreadMessage));
+
+                se.getLockClientNames().lock();
                 for(String name: se.getClientNames()){
-                    middlewareS.sendMessage(se.getS().encode(mi), name);
+                    middlewareS.sendMessage(s.encode(mi), name);
                 }
+                se.getLockClientNames().unlock();
             }
         }
     }

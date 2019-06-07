@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
 
 public class Main {
     public static void main(final String[] args) {
@@ -12,7 +13,7 @@ public class Main {
         final ClientStub stub = new ClientStub(args[0]);
         final Client client = new Client();
 
-        System.out.println(client.toString());
+        System.out.println("Client info: " + client.toString());
         if(client.getCompanys().size()==0){
             System.out.println("You don't have any actions.");
         }
@@ -22,16 +23,18 @@ public class Main {
         final List<String> companies = new ArrayList<>();
 
         //CompaniesRequest
-        stub.getCompanies().thenAccept((var) -> {
-            StringBuilder sb = new StringBuilder();
-
-            for(Map.Entry<String, Long> entry : var.entrySet()){
-                sb.append(entry.getKey()).append(": ").append(entry.getValue()).append(" actions.\n");
+        Map<String, Long> companiesReply = null;
+        try {
+            companiesReply = stub.getCompanies().get();
+            StringBuilder sb1 = new StringBuilder();
+            for(Map.Entry<String, Long> entry : companiesReply.entrySet()){
+                sb1.append(entry.getKey()).append(": ").append(entry.getValue()).append(" actions.\n");
                 companies.add(entry.getKey());
             }
-
-            System.out.println(sb.toString());
-        });
+            System.out.println(sb1.toString());
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
 
         //Actions, Buy and Sell Request
         final int numOps = 5; // Total number of random requests

@@ -1,9 +1,10 @@
 package Stock;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class StockImp {
+public class StockImp implements Serializable {
     private Map<String, Long> companies;
 
     public StockImp(){

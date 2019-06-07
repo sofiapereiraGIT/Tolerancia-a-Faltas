@@ -1,6 +1,8 @@
 package Common.Messages;
 
-public class Message {
+import java.io.Serializable;
+
+public class Message implements Serializable {
     private int transactionID;
     private String clientName;
 

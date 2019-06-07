@@ -45,7 +45,7 @@ public class ClientStubThread implements Runnable {
                      Map<Integer, List<String>> waitingFromServers, List<String> allActiveServers,
                      ReentrantLock lockWaitingFromServers, ReentrantLock lockAllActiveServers) {
         this.myGroupName = "stubgroup" + port;
-        this.middleware = new Middleware("receiver_stub" + port, this.myGroupName);
+        this.middleware = new Middleware("receiv_c" + port, this.myGroupName);
 
         this.s = Serializer.builder()
                 .withTypes(ActionsReply.class)
@@ -59,6 +59,7 @@ public class ClientStubThread implements Runnable {
                 .withTypes(EstadoReply.class)
                 .withTypes(EstadoRequest.class)
                 .withTypes(MembershipInfoReply.class)
+                .withTypes(MembershipInfoRequest.class)
                 .build();
 
         this.CFcompanies = CFcompanies;
@@ -89,7 +90,7 @@ public class ClientStubThread implements Runnable {
 
             if (spreadMessage.isRegular()) {
                 Message msg = s.decode(spreadMessage.getData());
-                System.out.println("New message (" + msg.toString() + ") from " + spreadMessage.getSender());
+                System.out.println("New message from " + spreadMessage.getSender()+"\n"+ msg.toString());
 
                 if (msg instanceof MembershipInfoReply) {
                     MembershipInfoReply reply = (MembershipInfoReply) msg;
@@ -101,16 +102,14 @@ public class ClientStubThread implements Runnable {
                     SpreadGroup g = spreadMessage.getSender();
                     for(int i=1; i<g.toString().length(); i++) {
                         if (g.toString().charAt(i)=='#'){
-                            i=g.toString().length();
-                        }
-                        else {
-                            String serverName = g.toString().substring(1,i+1);
+                            String serverName = g.toString().substring(1,i);
                             this.lockReceivedFromServers.lock();
                             if(!this.receivedFromServers.containsKey(msg.getTransactionID())){
                                 this.receivedFromServers.put(msg.getTransactionID(), new ArrayList<>());
                             }
                             this.receivedFromServers.get(msg.getTransactionID()).add(serverName);
                             this.lockReceivedFromServers.unlock();
+                            i=g.toString().length();
                         }
                     }
 
@@ -215,9 +214,8 @@ public class ClientStubThread implements Runnable {
                     }
                 }
 
-                System.out.print("Processed messages: ");
                 for(Integer i : removedKeys){
-                    System.out.print(i+" ");
+                    System.out.println("Processed message "+i);
                     this.waitingFromServers.remove(i);
                     this.receivedFromServers.remove(i);
                     this.receivedMessages.remove(i);

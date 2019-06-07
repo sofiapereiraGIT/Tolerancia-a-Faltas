@@ -1,8 +1,9 @@
 package Common.Messages;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class MembershipInfoReply extends Message {
+public class MembershipInfoReply extends Message implements Serializable {
     private int serverID;
     private List<String> allActiveServers;
     private int number;

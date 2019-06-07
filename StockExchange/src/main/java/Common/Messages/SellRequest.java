@@ -1,6 +1,8 @@
 package Common.Messages;
 
-public class SellRequest extends Message {
+import java.io.Serializable;
+
+public class SellRequest extends Message implements Serializable {
     private String company;
     private long actions;
 

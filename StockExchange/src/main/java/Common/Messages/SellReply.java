@@ -1,6 +1,8 @@
 package Common.Messages;
 
-public class SellReply extends Message {
+import java.io.Serializable;
+
+public class SellReply extends Message implements Serializable {
     private int serverID;
     private String company;
     private boolean result;

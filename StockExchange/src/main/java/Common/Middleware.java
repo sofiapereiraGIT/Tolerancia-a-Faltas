@@ -5,10 +5,11 @@ import spread.SpreadException;
 import spread.SpreadGroup;
 import spread.SpreadMessage;
 import java.io.InterruptedIOException;
+import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-public class Middleware {
+public class Middleware implements Serializable {
 
     private SpreadConnection connection;
 

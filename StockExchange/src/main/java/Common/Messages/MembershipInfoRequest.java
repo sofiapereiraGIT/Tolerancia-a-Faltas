@@ -1,6 +1,8 @@
 package Common.Messages;
 
-public class MembershipInfoRequest extends Message{
+import java.io.Serializable;
+
+public class MembershipInfoRequest extends Message implements Serializable {
 
     public MembershipInfoRequest(int t, String c){
         super(t, c);

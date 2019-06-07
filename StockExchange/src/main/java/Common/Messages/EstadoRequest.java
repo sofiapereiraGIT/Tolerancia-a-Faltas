@@ -1,6 +1,8 @@
 package Common.Messages;
 
-public class EstadoRequest extends Message {
+import java.io.Serializable;
+
+public class EstadoRequest extends Message implements Serializable {
     private int serverID;
     private int nextMsg;
 

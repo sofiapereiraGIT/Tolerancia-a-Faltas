@@ -1,9 +1,10 @@
 package Common.Messages;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EstadoReply extends Message {
+public class EstadoReply extends Message implements Serializable {
     private int serverID;
     private List<Message> messages;
 

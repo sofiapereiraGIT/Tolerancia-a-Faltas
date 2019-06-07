@@ -1,9 +1,10 @@
 package Common.Messages;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CompaniesReply extends Message {
+public class CompaniesReply extends Message implements Serializable {
     private int serverID;
     private Map<String, Long> companies;
 

@@ -1,6 +1,8 @@
 package Common.Messages;
 
-public class CompaniesRequest extends Message {
+import java.io.Serializable;
+
+public class CompaniesRequest extends Message implements Serializable {
 
     public CompaniesRequest(int t, String c){
         super(t, c);

@@ -1,6 +1,8 @@
 package Common.Messages;
 
-public class ActionsReply extends Message {
+import java.io.Serializable;
+
+public class ActionsReply extends Message implements Serializable {
     private int serverID;
     private String company;
     private long actions;
