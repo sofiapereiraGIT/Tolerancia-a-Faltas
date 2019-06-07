@@ -16,7 +16,6 @@ public class Refresher implements Runnable{
         this.middlewareS = sender;
     }
 
-    //todo : faltam os synchronized ou locks
     public void run(){
         while(true) {
             if(this.server.getMessages().size() > this.server.getNextMsg()){
@@ -25,14 +24,13 @@ public class Refresher implements Runnable{
                 if(this.server.isWaiting()){
                     if(mensagem instanceof EstadoReply){
                         EstadoReply estM = (EstadoReply) mensagem;
-                        System.out.println(estM.toString());
 
                         if(estM.getServerId() == this.server.getId()){
+                            System.out.println(estM.toString());
                             List<Message> result = estM.getMessages();
 
                             for(Message m: result){
-                                processMsg(m);
-                                this.server.setNextMsg(this.server.getNextMsg()+1);
+                                this.server.addMsg(m);
                             }
 
                             for(int i=0; i<this.server.getNotProcessedMsg().size(); i++){
