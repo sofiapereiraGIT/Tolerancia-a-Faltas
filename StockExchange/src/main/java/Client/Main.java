@@ -13,9 +13,12 @@ public class Main {
         final ClientStub stub = new ClientStub(args[0]);
         final Client client = new Client();
 
-        System.out.println("Client info: " + client.toString());
+        System.out.println("\n--- client info ---");
         if(client.getCompanys().size()==0){
             System.out.println("You don't have any actions.");
+        }
+        else {
+            System.out.println(client.toString());
         }
 
         //--- OPERATIONS ---
@@ -25,6 +28,7 @@ public class Main {
         //CompaniesRequest
         Map<String, Long> companiesReply = null;
         try {
+            System.out.println("Sending companies request.");
             companiesReply = stub.getCompanies().get();
             StringBuilder sb1 = new StringBuilder();
             for(Map.Entry<String, Long> entry : companiesReply.entrySet()){
