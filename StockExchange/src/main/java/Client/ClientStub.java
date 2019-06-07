@@ -32,7 +32,7 @@ public class ClientStub {
 
     ClientStub(String port){
         this.myGroupName = "stubgroup"+port;
-        this.middleware = new Middleware("sender_c"+port, this.myGroupName);
+        this.middleware = new Middleware("sendC"+port, this.myGroupName);
 
         this.s = Serializer.builder()
                 .withTypes(ActionsReply.class)

@@ -45,7 +45,7 @@ public class ClientStubThread implements Runnable {
                      Map<Integer, List<String>> waitingFromServers, List<String> allActiveServers,
                      ReentrantLock lockWaitingFromServers, ReentrantLock lockAllActiveServers) {
         this.myGroupName = "stubgroup" + port;
-        this.middleware = new Middleware("receiv_c" + port, this.myGroupName);
+        this.middleware = new Middleware("recvC" + port, this.myGroupName);
 
         this.s = Serializer.builder()
                 .withTypes(ActionsReply.class)
