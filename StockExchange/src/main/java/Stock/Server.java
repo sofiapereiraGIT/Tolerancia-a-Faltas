@@ -187,6 +187,34 @@ public class Server implements Serializable {
         this.lockInfo.unlock();
     }
 
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("-----SERVIDOR ").append(this.id).append("-----\n\n");
+        sb.append(this.stock.toString()).append("\n");
+
+        sb.append("Processed messages\n");
+        for(Message m: this.messages){
+            sb.append(m.toString());
+        }
+        sb.append("\n");
+
+        sb.append("Next message: ").append(this.nextMsg).append("\n");
+
+        sb.append("Not processed messages\n");
+        for(Message m: this.notProcessedMsg){
+            sb.append(m.toString());
+        }
+        sb.append("\n");
+
+        sb.append("Clients names\n");
+        for(String s: this.clientNames){
+            sb.append(s).append("\n");
+        }
+
+        return sb.toString();
+    }
+
     synchronized void writeInTextFile(String fileName) {
         try {
             PrintWriter fich = new PrintWriter(fileName);
