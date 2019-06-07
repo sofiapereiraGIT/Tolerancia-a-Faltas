@@ -6,7 +6,6 @@ import io.atomix.utils.serializer.Serializer;
 import spread.SpreadGroup;
 import spread.SpreadMessage;
 
-import java.net.Inet4Address;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -119,13 +118,19 @@ public class ClientStubThread implements Runnable {
                     this.lockWaitingFromServers.lock();
                     this.lockReceivedFromServers.lock();
                     boolean send = true;
+                    System.out.println("Waiting for - Received");
                     for(String s : this.waitingFromServers.get(msg.getTransactionID())) {
                         if (!receivedFromServers.get(msg.getTransactionID()).contains(s)) {
                             send = false;
+                            System.out.println(s+" - false");
+                        }
+                        else {
+                            System.out.println(s+" - true");
                         }
                     }
                     this.lockReceivedMessages.lock();
                     if(send==true){
+                        System.out.println("I received from everyone! Show message to client.");
                         this.receivedMessages.put(msg.getTransactionID(), msg); //because of the remove
                         answerMsg(msg);
                         this.waitingFromServers.remove(msg.getTransactionID());
@@ -133,6 +138,7 @@ public class ClientStubThread implements Runnable {
                         this.receivedMessages.remove(msg.getTransactionID());
                     }
                     else {
+                        System.out.println("I did not receive from everyone. Waiting for the others.");
                         this.receivedMessages.put(msg.getTransactionID(), msg);
                     }
                     this.lockReceivedMessages.unlock();
@@ -155,6 +161,7 @@ public class ClientStubThread implements Runnable {
         this.lockAllActiveServers.lock();
             this.allActiveServers = reply.getAllActiveServers();
             List<String> auxAllActiveServers = new ArrayList<>(this.allActiveServers);
+            System.out.println("Current active servers: "+auxAllActiveServers.toString());
         this.lockAllActiveServers.unlock();
 
         //Atualizar os servidores por quais se espera X msg
@@ -166,8 +173,11 @@ public class ClientStubThread implements Runnable {
             }
 
             for (Map.Entry<Integer, List<String>> entry : auxMap.entrySet()){
+                System.out.println("Message "+entry.getKey()+" is waiting for:");
                 for(String s : entry.getValue()){
+                    System.out.print(s+" ");
                     if(!auxAllActiveServers.contains(s))
+                        System.out.print("(removed) ");
                         this.waitingFromServers.get(entry.getKey()).remove(s);
                 }
             }
@@ -177,24 +187,37 @@ public class ClientStubThread implements Runnable {
             this.lockReceivedFromServers.lock();
             this.lockReceivedMessages.lock();
                 for (Map.Entry<Integer, List<String>> entry : this.waitingFromServers.entrySet()){
+                    System.out.println("--- Message "+entry.getKey()+" ---");
                     boolean send = true;
                     if(!this.receivedFromServers.containsKey(entry.getKey())){
                         send = false;
+                        System.out.println("Haven't received from anyone yet.");
                     }
                     else {
+                        System.out.println("Waiting for - Received");
                         for(String s : entry.getValue()) {
                             if(!this.receivedFromServers.get(entry.getKey()).contains(s)){
                                 send=false;
+                                System.out.println(s+" - false");
+                            }
+                            else {
+                                System.out.println(s+" - true");
                             }
                         }
                     }
                     if(send==true){
+                        System.out.println("I received from everyone! Show message to client.");
                         answerMsg(this.receivedMessages.get(entry.getKey()));
                         removedKeys.add(entry.getKey());
                     }
+                    else {
+                        System.out.println("I did not receive from everyone.");
+                    }
                 }
 
+                System.out.print("Processed messages: ");
                 for(Integer i : removedKeys){
+                    System.out.print(i+" ");
                     this.waitingFromServers.remove(i);
                     this.receivedFromServers.remove(i);
                     this.receivedMessages.remove(i);

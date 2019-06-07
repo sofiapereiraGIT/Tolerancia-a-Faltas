@@ -1,0 +1,22 @@
+SERVIDORES
+
+- o 1º processo a entrar
+    - ver se inicia sem esperar pelo estado de ninguem
+    - nao mete nada na fila de espera
+    - faz o processo normal das msg desde o inicio
+
+(sem pedidos do cliente OU no meio dos pedidos do client)
+- o 2º/+ processo a entrar
+    - avisar os clientes
+    - pede estado parcial ao 1º
+    - só mete mgs em espera dps de receber a sua msg de estado
+    - mete msgs em espera
+    - recebe estado, responde às msg em espera
+    - processo normal pela mesma ordem que os outros
+
+CLIENTES
+
+- faz pedidos
+- espera pela resposta de todos os servidores ativos a quem enviou o pedido
+- recebe respostas aos pedidos por ordem
+- qd recebe todas, imprime um

@@ -4,10 +4,7 @@ import Common.*;
 import Common.Messages.*;
 import io.atomix.utils.serializer.Serializer;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -27,7 +24,7 @@ public class ClientStub {
     private final ReentrantLock lockCFbuy = new ReentrantLock();
     private final ReentrantLock lockCFsell = new ReentrantLock();
 
-    private final Map<Integer, List<String>> waitingFromServers = new HashMap<>();
+    private final Map<Integer, List<String>> waitingFromServers = new TreeMap<>();
     private final List<String> allActiveServers = new ArrayList<>();
 
     private final ReentrantLock lockWaitingFromServers = new ReentrantLock();
