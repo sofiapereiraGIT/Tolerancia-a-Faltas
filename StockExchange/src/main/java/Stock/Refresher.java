@@ -195,7 +195,7 @@ public class Refresher implements Runnable{
 
                 this.server.getLockMessages().lock();
                 if(this.server.getMessages().size() > estadoRequest.getNextMsg()) {
-                    result = this.server.getMessages().subList(estadoRequest.getNextMsg(), this.server.getMessages().size());
+                    result = new ArrayList<>(this.server.getMessages().subList(estadoRequest.getNextMsg(), this.server.getMessages().size()));
                 }
                 this.server.getLockMessages().unlock();
 

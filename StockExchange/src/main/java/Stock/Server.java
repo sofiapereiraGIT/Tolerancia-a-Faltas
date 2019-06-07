@@ -211,6 +211,12 @@ public class Server implements Serializable {
         for(String s: this.clientNames){
             sb.append(s).append("\n");
         }
+        sb.append("\n");
+
+        sb.append("Servers in group\n");
+        for(String s: this.latestMembershipInfo){
+            sb.append(s).append("\n");
+        }
 
         return sb.toString();
     }
@@ -339,6 +345,7 @@ public class Server implements Serializable {
             else{
                 se.getLockInfo().lock();
                 se.setLatestMembershipInfo(spreadMessage);
+                System.out.println(se.getLatestMembershipInfo().toString());
                 se.getLockInfo().unlock();
 
                 System.out.println("\nNew membership message from " + spreadMessage.getMembershipInfo().getGroup());
