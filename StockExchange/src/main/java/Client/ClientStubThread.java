@@ -82,7 +82,7 @@ public class ClientStubThread implements Runnable {
     @Override
     public void run() {
         //First message sent
-        System.out.println("Sending membership info request to server group.");
+        System.out.println("Sending membership info request to server group.\n");
         byte[] msgBytes = this.s.encode(new MembershipInfoRequest(0, this.myGroupName));
         this.middleware.sendMessage(msgBytes, "servergroup");
 

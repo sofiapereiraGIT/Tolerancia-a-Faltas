@@ -15,10 +15,10 @@ public class Main {
 
         System.out.println("\n--- client info ---");
         if(client.getCompanys().size()==0){
-            System.out.println("You don't have any actions.");
+            System.out.println("You don't have any actions.\n");
         }
         else {
-            System.out.println(client.toString());
+            System.out.println(client.toString()+"\n");
         }
 
         //--- OPERATIONS ---
@@ -47,6 +47,15 @@ public class Main {
         Map<String, Long> clientCompanies;
 
         for (int i = 0; i < numOps; i++) {
+            if(i==3){
+                try {
+                    System.out.println("\n>> sleeping\n");
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
             randomOperation = random.nextInt(3);
             clientCompanies = client.getCompanys();
 
