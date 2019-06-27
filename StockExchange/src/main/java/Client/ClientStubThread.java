@@ -120,6 +120,9 @@ public class ClientStubThread implements Runnable {
                     this.lockReceivedFromServers.lock();
                     boolean send = true;
                     System.out.println("Waiting for - Received");
+
+                    System.out.println("MAP:\n"+this.waitingFromServers.toString());
+
                     for(String s : this.waitingFromServers.get(msg.getTransactionID())) {
                         if (!receivedFromServers.get(msg.getTransactionID()).contains(s)) {
                             send = false;

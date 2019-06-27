@@ -38,15 +38,12 @@ public class Refresher implements Runnable{
 
     public void run(){
         while(true) {
-            this.server.getLockMessages().lock();
-            this.server.getLockNextMsg().lock();
+            //this.server.getLockMessages().lock();
+            //this.server.getLockNextMsg().lock();
 
             if(this.server.getMessages().size() > this.server.getNextMsg()){
                 Message mensagem = this.server.getMessage();
                 this.server.setNextMsg(this.server.getNextMsg()+1);
-
-                this.server.getLockNextMsg().unlock();
-                this.server.getLockMessages().unlock();
 
                 this.server.getLockWaiting().lock();
 
@@ -61,17 +58,14 @@ public class Refresher implements Runnable{
                             this.server.getLockMessages().lock();
                             for(Message m: result){
                                 this.server.addMsg(m);
-                                this.server.setNextMsg(this.server.getNextMsg()+1);
-                                this.processMsg(m);
                             }
 
                             this.server.getLockNotProcessedMsg().lock();
                             for(int i=0; i<this.server.getNotProcessedMsg().size(); i++){
                                 Message tmp = this.server.getNotProcessedMsg().get(i);
                                 this.server.addMsg(tmp);
+                                this.server.removeNotProcessedMsg(tmp);
                             }
-
-                            this.server.removeNotProcessedMsg();
 
                             this.server.setWaiting(false);
 
@@ -90,8 +84,28 @@ public class Refresher implements Runnable{
 
                 else {
                     this.server.getLockWaiting().unlock();
+                    Message m;
 
-                    Message m = processMsg(mensagem);
+                    if(mensagem instanceof BuyRequest || mensagem instanceof SellRequest){
+                        //this.server.getLockStock().lock();
+                        //this.server.getLockNextMsg().unlock();
+                        //this.server.getLockMessages().unlock();
+                        m = processWriteMsg(mensagem);
+                        //his.server.getLockStock().unlock();
+                    }
+                    else if(mensagem instanceof ActionsRequest || mensagem instanceof CompaniesRequest){
+                        //this.server.getLockStock().lock();
+                        //this.server.getLockNextMsg().unlock();
+                        //this.server.getLockMessages().unlock();
+                        StockImp copia = this.server.getStock().clone();
+                        //this.server.getLockStock().unlock();
+                        m = processReadMsg(mensagem, copia);
+                    }
+                    else {
+                        //this.server.getLockNextMsg().unlock();
+                        //this.server.getLockMessages().unlock();
+                        m = processMsg(mensagem);
+                    }
 
                     this.server.lockAll();
                     this.server.storeState("server"+this.server.getId()+"DB");
@@ -104,8 +118,8 @@ public class Refresher implements Runnable{
                 }
             }
             else{
-                this.server.getLockNextMsg().unlock();
-                this.server.getLockMessages().unlock();
+                //this.server.getLockNextMsg().unlock();
+                //this.server.getLockMessages().unlock();
             }
         }
     }
@@ -113,83 +127,7 @@ public class Refresher implements Runnable{
     public Message processMsg(Message mensagem){
         Message message = null;
 
-        if(mensagem instanceof ActionsRequest){
-            ActionsRequest actionsRequest = (ActionsRequest) mensagem;
-            System.out.println("Refresher "+this.id+": "+actionsRequest.toString());
-
-            this.server.getLockClientNames().lock();
-            this.server.addClientName(actionsRequest.getClientName());
-            this.server.getLockClientNames().unlock();
-
-            String company = actionsRequest.getCompany();
-
-            this.server.getLockStock().lock();
-            long actions = this.server.getStock().actions(company);
-            this.server.getLockStock().unlock();
-
-            ActionsReply actionsReply = new ActionsReply(actionsRequest.getTransactionID(), actionsRequest.getClientName(), this.server.getId(), company, actions);
-            System.out.println("Refresher "+this.id+": "+actionsReply.toString());
-
-            message = actionsReply;
-
-        } else if(mensagem instanceof BuyRequest){
-            BuyRequest buyRequest = (BuyRequest) mensagem;
-            System.out.println("Refresher "+this.id+": "+buyRequest.toString());
-
-            this.server.getLockClientNames().lock();
-            this.server.addClientName(buyRequest.getClientName());
-            this.server.getLockClientNames().unlock();
-
-            String company = buyRequest.getCompany();
-            long qt = buyRequest.getActions();
-
-            this.server.getLockStock().lock();
-            boolean result = this.server.getStock().buy(company, qt);
-            this.server.getLockStock().unlock();
-
-            BuyReply buyReply = new BuyReply(buyRequest.getTransactionID(), buyRequest.getClientName(), this.server.getId(), company, result);
-            System.out.println("Refresher "+this.id+": "+buyReply.toString());
-
-            message = buyReply;
-
-        } else if(mensagem instanceof CompaniesRequest){
-            CompaniesRequest companiesRequest = (CompaniesRequest) mensagem;
-            System.out.println("Refresher "+this.id+": "+companiesRequest.toString());
-
-            this.server.getLockClientNames().lock();
-            this.server.addClientName(companiesRequest.getClientName());
-            this.server.getLockClientNames().unlock();
-
-            this.server.getLockStock().lock();
-            Map<String, Long> companies = this.server.getStock().getCompanies();
-            this.server.getLockStock().unlock();
-
-            CompaniesReply companiesReply = new CompaniesReply(companiesRequest.getTransactionID(), companiesRequest.getClientName(), this.server.getId(), companies);
-            System.out.println("Refresher "+this.id+": "+companiesReply.toString());
-
-            message = companiesReply;
-
-        } else if(mensagem instanceof SellRequest){
-            SellRequest sellRequest = (SellRequest) mensagem;
-            System.out.println("Refresher "+this.id+": "+sellRequest.toString());
-
-            this.server.getLockClientNames().lock();
-            this.server.addClientName(sellRequest.getClientName());
-            this.server.getLockClientNames().unlock();
-
-            String company = sellRequest.getCompany();
-            long qt = sellRequest.getActions();
-
-            this.server.getLockStock().lock();
-            boolean result = this.server.getStock().sell(company, qt);
-            this.server.getLockStock().unlock();
-
-            SellReply sellReply = new SellReply(sellRequest.getTransactionID(), sellRequest.getClientName(), this.server.getId(), company, result);
-            System.out.println("Refresher "+this.id+": "+sellReply.toString());
-
-            message = sellReply;
-
-        } else if(mensagem instanceof EstadoRequest){
+         if(mensagem instanceof EstadoRequest){
             EstadoRequest estadoRequest = (EstadoRequest) mensagem;
 
             if(estadoRequest.getServerID() != this.server.getId()){
@@ -199,15 +137,9 @@ public class Refresher implements Runnable{
 
                 this.server.getLockMessages().lock();
                 if(this.server.getMessages().size() > estadoRequest.getNextMsg()) {
-                    boolean stop = false;
-
-                    for(int i=estadoRequest.getNextMsg(); i<this.server.getMessages().size() && !stop; i++){
-                        Message m = this.server.getMessages().get(i);
-                        if(m instanceof EstadoRequest && ((EstadoRequest) m).getServerID() == estadoRequest.getServerID()){
-                            result.add(m);
-                            stop = true;
-                        }
-                        else result.add(m);
+                    List<Message> aux = this.server.getMessages().subList(estadoRequest.getNextMsg(), this.server.getMessages().size());
+                    for(Message m: aux){
+                        result.add(m);
                     }
                 }
                 this.server.getLockMessages().unlock();
@@ -235,6 +167,92 @@ public class Refresher implements Runnable{
             System.out.println("Refresher "+this.id+": "+mi.toString());
 
             message = mi;
+        }
+
+        return message;
+    }
+
+    public Message processReadMsg(Message mensagem, StockImp imp){
+        Message message = null;
+
+        if(mensagem instanceof ActionsRequest){
+            ActionsRequest actionsRequest = (ActionsRequest) mensagem;
+            System.out.println("Refresher "+this.id+": "+actionsRequest.toString());
+
+            this.server.getLockClientNames().lock();
+            this.server.addClientName(actionsRequest.getClientName());
+            this.server.getLockClientNames().unlock();
+
+            String company = actionsRequest.getCompany();
+            long actions = imp.actions(company);
+
+            ActionsReply actionsReply = new ActionsReply(actionsRequest.getTransactionID(), actionsRequest.getClientName(), this.server.getId(), company, actions);
+            System.out.println("Refresher "+this.id+": "+actionsReply.toString());
+
+            message = actionsReply;
+
+        } else if(mensagem instanceof CompaniesRequest) {
+            CompaniesRequest companiesRequest = (CompaniesRequest) mensagem;
+            System.out.println("Refresher " + this.id + ": " + companiesRequest.toString());
+
+            this.server.getLockClientNames().lock();
+            this.server.addClientName(companiesRequest.getClientName());
+            this.server.getLockClientNames().unlock();
+
+            Map<String, Long> companies = imp.getCompanies();
+
+            CompaniesReply companiesReply = new CompaniesReply(companiesRequest.getTransactionID(), companiesRequest.getClientName(), this.server.getId(), companies);
+            System.out.println("Refresher " + this.id + ": " + companiesReply.toString());
+
+            message = companiesReply;
+        }
+
+        return message;
+    }
+
+    public Message processWriteMsg(Message mensagem){
+        Message message = null;
+
+        if(mensagem instanceof BuyRequest) {
+            BuyRequest buyRequest = (BuyRequest) mensagem;
+            System.out.println("Refresher " + this.id + ": " + buyRequest.toString());
+
+            this.server.getLockClientNames().lock();
+            this.server.addClientName(buyRequest.getClientName());
+            this.server.getLockClientNames().unlock();
+
+            String company = buyRequest.getCompany();
+            long qt = buyRequest.getActions();
+
+            //this.server.getLockStock().lock();
+            boolean result = this.server.getStock().buy(company, qt);
+            //this.server.getLockStock().unlock();
+
+            BuyReply buyReply = new BuyReply(buyRequest.getTransactionID(), buyRequest.getClientName(), this.server.getId(), company, result);
+            System.out.println("Refresher " + this.id + ": " + buyReply.toString());
+
+            message = buyReply;
+
+        } else if(mensagem instanceof SellRequest){
+            SellRequest sellRequest = (SellRequest) mensagem;
+            System.out.println("Refresher "+this.id+": "+sellRequest.toString());
+
+            this.server.getLockClientNames().lock();
+            this.server.addClientName(sellRequest.getClientName());
+            this.server.getLockClientNames().unlock();
+
+            String company = sellRequest.getCompany();
+            long qt = sellRequest.getActions();
+
+            //this.server.getLockStock().lock();
+            boolean result = this.server.getStock().sell(company, qt);
+            //this.server.getLockStock().unlock();
+
+            SellReply sellReply = new SellReply(sellRequest.getTransactionID(), sellRequest.getClientName(), this.server.getId(), company, result);
+            System.out.println("Refresher "+this.id+": "+sellReply.toString());
+
+            message = sellReply;
+
         }
 
         return message;

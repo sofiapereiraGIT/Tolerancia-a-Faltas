@@ -42,4 +42,5 @@ public class EstadoReply extends Message implements Serializable {
 
         return sb.toString();
     }
+
 }

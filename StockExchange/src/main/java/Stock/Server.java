@@ -107,14 +107,8 @@ public class Server implements Serializable {
         this.notProcessedMsg.add(m);
     }
 
-    public void removeNotProcessedMsg(Message m){
-        for(int i=0; i<this.notProcessedMsg.size(); i++){
-            Message tmp = this.notProcessedMsg.get(i);
-            if(tmp.getTransactionID() == m.getTransactionID() && tmp.getClientName() == m.getClientName()){
-                this.notProcessedMsg.remove(i);
-                break;
-            }
-        }
+    public void removeNotProcessedMsg(){
+        this.notProcessedMsg.clear();
     }
 
     public void addClientName(String name){
@@ -304,9 +298,9 @@ public class Server implements Serializable {
         }
 
         Thread refresher1 = new Thread(new Refresher(1, se, middlewareS));
-        Thread refresher2 = new Thread(new Refresher(2, se, middlewareS));
+        //Thread refresher2 = new Thread(new Refresher(2, se, middlewareS));
         refresher1.start();
-        refresher2.start();
+        //refresher2.start();
 
         boolean guardar = false;
 
@@ -318,21 +312,40 @@ public class Server implements Serializable {
 
                 se.getLockWaiting().lock();
                 if(se.isWaiting()){
+                    System.out.println("Waiting, but received a message.");
+
                     if(m instanceof EstadoReply && ((EstadoReply) m).getServerId() == se.getId()){
+                        System.out.println("Somebody answered me finally.");
                         se.getLockMessages().lock();
                         se.addMsg(m);
                         se.getLockMessages().unlock();
                     }
                     else{
                         if(guardar){
+                            System.out.println("Saving for later.");
                             se.getLockNotProcessedMsg().lock();
                             se.addNotProcessedMsg(m);
                             se.getLockNotProcessedMsg().unlock();
                         }
-                        else if(!guardar && m instanceof EstadoRequest && ((EstadoRequest) m).getServerID() == se.getId()) guardar = true;
+                        else if(!guardar && m instanceof EstadoRequest && ((EstadoRequest) m).getServerID() == se.getId()){
+                            guardar = true;
+                            System.out.println("Received my request for state. Saving all messages until someone answers me.");
+                        }
+                        else {
+                            System.out.println("Still haven't received my request for state. Discard.");
+                        }
                     }
                 }
                 else{
+
+                    if(m instanceof EstadoRequest){
+                        try {
+                            Thread.sleep(5000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
                     se.getLockMessages().lock();
                     se.addMsg(m);
                     se.getLockMessages().unlock();
