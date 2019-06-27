@@ -345,16 +345,16 @@ public class Server implements Serializable {
             }
             else{
                 se.getLockInfo().lock();
-                se.setLatestMembershipInfo(spreadMessage);
+                se.setLatestMembershipInfo(msg);
                 System.out.println(se.getLatestMembershipInfo().toString());
                 se.getLockInfo().unlock();
 
-                System.out.println("\nNew membership message from " + spreadMessage.getMembershipInfo().getGroup());
-                for(SpreadGroup g : spreadMessage.getMembershipInfo().getMembers()){
+                System.out.println("\nNew membership message from " + msg.getMembershipInfo().getGroup());
+                for(SpreadGroup g : msg.getMembershipInfo().getMembers()){
                     System.out.println(g.toString());
                 }
 
-                int number = spreadMessage.getMembershipInfo().getMembers().length;
+                int number = msg.getMembershipInfo().getMembers().length;
                 if(number == 2){
                     se.getLockWaiting().lock();
                     if(se.isWaiting()){
@@ -364,7 +364,7 @@ public class Server implements Serializable {
                     se.getLockWaiting().unlock();
                 }
 
-                MembershipInfoReply mi = new MembershipInfoReply(-1, "", id, number, se.getServersNames(spreadMessage));
+                MembershipInfoReply mi = new MembershipInfoReply(-1, "", id, number, se.getServersNames(msg));
 
                 se.getLockClientNames().lock();
                 for(String name: se.getClientNames()){

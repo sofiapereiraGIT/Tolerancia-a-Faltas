@@ -30,4 +30,4 @@ CLIENTES
 
 Problemas:
 -> servers recebem e enviam mts vezes EstadoRequest/EstadoReply
--> servers recebem mal a msg de membership do Spread ???
+-> servers usam o sender em vez de receive (?) não tenho a certeza, mas temos que confirmar isto
