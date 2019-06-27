@@ -27,7 +27,3 @@ CLIENTES
 ✔️ 1 serv - 2 cli
 [] 2 serv - 1 cli
 [] 2 serv - 2 cli
-
-Problemas:
--> servers recebem e enviam mts vezes EstadoRequest/EstadoReply
--> servers usam o sender em vez de receive (?) não tenho a certeza, mas temos que confirmar isto
