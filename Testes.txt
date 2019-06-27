@@ -25,5 +25,5 @@ CLIENTES
 
 ✔️ 1 serv - 1 cli
 ✔️ 1 serv - 2 cli
-[] 2 serv - 1 cli
-[] 2 serv - 2 cli
+✔️ 2 serv - 1 cli
+✔️ 2 serv - 2 cli
