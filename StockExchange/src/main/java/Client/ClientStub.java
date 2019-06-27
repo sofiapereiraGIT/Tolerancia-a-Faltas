@@ -74,13 +74,13 @@ public class ClientStub {
 
         this.lockAllActiveServers.lock();
         this.lockWaitingFromServers.lock();
+
         this.waitingFromServers.put(this.transactionID, new ArrayList<>(this.allActiveServers));
-        this.lockAllActiveServers.unlock();
-        this.lockWaitingFromServers.unlock();
-
-
         byte[] msg = this.s.encode(new CompaniesRequest(this.transactionID, this.myGroupName));
         this.middleware.sendMessage(msg, "servergroup");
+
+        this.lockAllActiveServers.unlock();
+        this.lockWaitingFromServers.unlock();
 
         return cf;
     }
@@ -95,12 +95,14 @@ public class ClientStub {
 
         this.lockAllActiveServers.lock();
         this.lockWaitingFromServers.lock();
+
         this.waitingFromServers.put(this.transactionID, new ArrayList<>(this.allActiveServers));
+        byte[] msg = this.s.encode(new ActionsRequest(this.transactionID, this.myGroupName, companyName));
+        this.middleware.sendMessage(msg, "servergroup");
+
         this.lockAllActiveServers.unlock();
         this.lockWaitingFromServers.unlock();
 
-        byte[] msg = this.s.encode(new ActionsRequest(this.transactionID, this.myGroupName, companyName));
-        this.middleware.sendMessage(msg, "servergroup");
 
         return cf;
     }
@@ -115,12 +117,13 @@ public class ClientStub {
 
         this.lockAllActiveServers.lock();
         this.lockWaitingFromServers.lock();
-        this.waitingFromServers.put(this.transactionID, new ArrayList<>(this.allActiveServers));
-        this.lockAllActiveServers.unlock();
-        this.lockWaitingFromServers.unlock();
 
+        this.waitingFromServers.put(this.transactionID, new ArrayList<>(this.allActiveServers));
         byte[] msg = this.s.encode(new BuyRequest(this.transactionID, this.myGroupName, companyName, actionsQuantity));
         this.middleware.sendMessage(msg, "servergroup");
+
+        this.lockAllActiveServers.unlock();
+        this.lockWaitingFromServers.unlock();
 
         return cf;
     }
@@ -135,12 +138,13 @@ public class ClientStub {
 
         this.lockAllActiveServers.lock();
         this.lockWaitingFromServers.lock();
-        this.waitingFromServers.put(this.transactionID, new ArrayList<>(this.allActiveServers));
-        this.lockAllActiveServers.unlock();
-        this.lockWaitingFromServers.unlock();
 
+        this.waitingFromServers.put(this.transactionID, new ArrayList<>(this.allActiveServers));
         byte[] msg = this.s.encode(new SellRequest(this.transactionID, this.myGroupName, companyName, actionsQuantity));
         this.middleware.sendMessage(msg, "servergroup");
+
+        this.lockAllActiveServers.unlock();
+        this.lockWaitingFromServers.unlock();
 
         return cf;
     }

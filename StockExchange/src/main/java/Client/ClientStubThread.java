@@ -95,6 +95,7 @@ public class ClientStubThread implements Runnable {
                 System.out.println("New message from " + spreadMessage.getSender()+"\n"+ msg.toString());
 
                 if (msg instanceof MembershipInfoReply) {
+                    this.lockAllActiveServers.lock();
                     MembershipInfoReply reply = (MembershipInfoReply) msg;
                     serversInfo(reply);
                 }
@@ -102,16 +103,16 @@ public class ClientStubThread implements Runnable {
                 else {
                     //Received from (sender name)
                     SpreadGroup g = spreadMessage.getSender();
-                    for(int i=1; i<g.toString().length(); i++) {
-                        if (g.toString().charAt(i)=='#'){
-                            String serverName = g.toString().substring(1,i);
+                    for (int i = 1; i < g.toString().length(); i++) {
+                        if (g.toString().charAt(i) == '#') {
+                            String serverName = g.toString().substring(1, i);
                             this.lockReceivedFromServers.lock();
-                            if(!this.receivedFromServers.containsKey(msg.getTransactionID())){
+                            if (!this.receivedFromServers.containsKey(msg.getTransactionID())) {
                                 this.receivedFromServers.put(msg.getTransactionID(), new ArrayList<>());
                             }
                             this.receivedFromServers.get(msg.getTransactionID()).add(serverName);
                             this.lockReceivedFromServers.unlock();
-                            i=g.toString().length();
+                            i = g.toString().length();
                         }
                     }
 
@@ -121,31 +122,31 @@ public class ClientStubThread implements Runnable {
                     boolean send = true;
                     System.out.println("Waiting for - Received");
 
-                    System.out.println("MAP:\n"+this.waitingFromServers.toString());
+                    System.out.println("MAP:\n" + this.waitingFromServers.toString());
 
-                    for(String s : this.waitingFromServers.get(msg.getTransactionID())) {
-                        if (!receivedFromServers.get(msg.getTransactionID()).contains(s)) {
-                            send = false;
-                            System.out.println(s+" - false");
+                    if (this.waitingFromServers.containsKey(msg.getTransactionID())) {
+                        for (String s : this.waitingFromServers.get(msg.getTransactionID())) {
+                            if (!receivedFromServers.get(msg.getTransactionID()).contains(s)) {
+                                send = false;
+                                System.out.println(s + " - false");
+                            } else {
+                                System.out.println(s + " - true");
+                            }
                         }
-                        else {
-                            System.out.println(s+" - true");
+                        this.lockReceivedMessages.lock();
+                        if (send == true) {
+                            System.out.println("I received from everyone! Show message to client.");
+                            this.receivedMessages.put(msg.getTransactionID(), msg); //because of the remove
+                            answerMsg(msg);
+                            this.waitingFromServers.remove(msg.getTransactionID());
+                            this.receivedFromServers.remove(msg.getTransactionID());
+                            this.receivedMessages.remove(msg.getTransactionID());
+                        } else {
+                            System.out.println("I did not receive from everyone. Waiting for the others.");
+                            this.receivedMessages.put(msg.getTransactionID(), msg);
                         }
+                        this.lockReceivedMessages.unlock();
                     }
-                    this.lockReceivedMessages.lock();
-                    if(send==true){
-                        System.out.println("I received from everyone! Show message to client.");
-                        this.receivedMessages.put(msg.getTransactionID(), msg); //because of the remove
-                        answerMsg(msg);
-                        this.waitingFromServers.remove(msg.getTransactionID());
-                        this.receivedFromServers.remove(msg.getTransactionID());
-                        this.receivedMessages.remove(msg.getTransactionID());
-                    }
-                    else {
-                        System.out.println("I did not receive from everyone. Waiting for the others.");
-                        this.receivedMessages.put(msg.getTransactionID(), msg);
-                    }
-                    this.lockReceivedMessages.unlock();
                     this.lockReceivedFromServers.unlock();
                     this.lockWaitingFromServers.unlock();
                 }
@@ -164,7 +165,6 @@ public class ClientStubThread implements Runnable {
 
     private void serversInfo(MembershipInfoReply reply) {
         //Atualizar allActiveServers
-        this.lockAllActiveServers.lock();
             this.allActiveServers.clear();
             this.allActiveServers.addAll(reply.getAllActiveServers());
             List<String> auxAllActiveServers = new ArrayList<>(this.allActiveServers);
@@ -180,13 +180,15 @@ public class ClientStubThread implements Runnable {
             }
 
             for (Map.Entry<Integer, List<String>> entry : auxMap.entrySet()){
-                System.out.println("Message "+entry.getKey()+" is waiting for:");
+                System.out.print("Message "+entry.getKey()+" is waiting for: ");
                 for(String s : entry.getValue()){
                     System.out.print(s+" ");
-                    if(!auxAllActiveServers.contains(s))
-                        System.out.print("(removed) ");
+                    if(!auxAllActiveServers.contains(s)) {
+                        System.out.print("(removed)");
                         this.waitingFromServers.get(entry.getKey()).remove(s);
+                    }
                 }
+                System.out.println(" ");
             }
 
             //Verificar se já se pode responder a X msg
@@ -218,7 +220,7 @@ public class ClientStubThread implements Runnable {
                         removedKeys.add(entry.getKey());
                     }
                     else {
-                        System.out.println("I did not receive from everyone.");
+                        System.out.println("I did not receive from everyone. Don't show message yet.");
                     }
                 }
 
@@ -228,6 +230,7 @@ public class ClientStubThread implements Runnable {
                     this.receivedFromServers.remove(i);
                     this.receivedMessages.remove(i);
                 }
+
             this.lockReceivedMessages.unlock();
             this.lockReceivedFromServers.unlock();
         this.lockWaitingFromServers.unlock();

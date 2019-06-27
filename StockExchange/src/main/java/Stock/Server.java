@@ -310,6 +310,14 @@ public class Server implements Serializable {
             if(msg.isRegular()){
                 Message m = s.decode(msg.getData());
 
+                if(m.getTransactionID() == 3){
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
                 se.getLockWaiting().lock();
                 if(se.isWaiting()){
                     System.out.println("Waiting, but received a message.");
