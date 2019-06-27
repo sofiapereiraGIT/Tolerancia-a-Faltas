@@ -34,9 +34,11 @@ public class EstadoReply extends Message implements Serializable {
         sb.append("--- EstadoReply ---\n");
         sb.append("To server: ").append(this.serverID).append("\n");
 
+        sb.append("Mensagens enviadas: \n[\n");
         for(Message m : this.messages) {
-            sb.append("Message: ").append(m.toString()).append("\n");
+            sb.append("\tMessage: ").append(m.toString()).append("\n");
         }
+        sb.append("]\n");
 
         return sb.toString();
     }
