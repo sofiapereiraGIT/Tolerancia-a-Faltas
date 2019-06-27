@@ -303,9 +303,9 @@ public class Server implements Serializable {
         }
 
         Thread refresher1 = new Thread(new Refresher(1, se, middlewareS));
-        Thread refresher2 = new Thread(new Refresher(2, se, middlewareS));
+        //Thread refresher2 = new Thread(new Refresher(2, se, middlewareS));
         refresher1.start();
-        refresher2.start();
+        //refresher2.start();
 
         boolean guardar = false;
 
