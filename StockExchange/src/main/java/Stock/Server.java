@@ -264,6 +264,7 @@ public class Server implements Serializable {
     public static void main(final String[] args){
         int id = Integer.parseInt(args[0]);
         Server se = loadState(id, "server"+id+"DB");
+        se.setWaiting(true);
 
         Serializer s = Serializer.builder()
                     .withTypes(ActionsReply.class)
@@ -323,12 +324,12 @@ public class Server implements Serializable {
                         se.getLockMessages().unlock();
                     }
                     else{
-                        if(!guardar && m instanceof EstadoRequest && ((EstadoRequest) m).getServerID() == se.getId()) guardar = true;
                         if(guardar){
                             se.getLockNotProcessedMsg().lock();
                             se.addNotProcessedMsg(m);
                             se.getLockNotProcessedMsg().unlock();
                         }
+                        else if(!guardar && m instanceof EstadoRequest && ((EstadoRequest) m).getServerID() == se.getId()) guardar = true;
                     }
                 }
                 else{
