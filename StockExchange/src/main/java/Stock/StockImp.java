@@ -8,14 +8,14 @@ public class StockImp implements Serializable {
     private Map<String, Long> companies;
 
     public StockImp(){
-        this.companies = new HashMap<String, Long>();
+        this.companies = new HashMap<>();
         this.companies.put("Mango", (long) 500);
         this.companies.put("Zara", (long) 500);
         this.companies.put("Nike", (long) 500);
     }
 
     public StockImp(Map<String, Long> c){
-        this.companies = new HashMap<String, Long>();
+        this.companies = new HashMap<>();
         this.setCompanies(c);
     }
 
@@ -79,5 +79,9 @@ public class StockImp implements Serializable {
         }
 
         return false;
+    }
+
+    public StockImp clone(){
+        return new StockImp(this.companies);
     }
 }
