@@ -67,7 +67,7 @@ public class Refresher implements Runnable{
 
                             this.server.getLockNotProcessedMsg().lock();
                             for(int i=0; i<this.server.getNotProcessedMsg().size(); i++){
-                                Message tmp = this.server.getNotProcessedMsg().get(i);
+                                Message tmp = new ArrayList<>(this.server.getNotProcessedMsg()).get(i);
                                 this.server.addMsg(tmp);
                             }
 

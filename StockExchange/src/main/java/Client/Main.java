@@ -50,7 +50,7 @@ public class Main {
             if(i==3){
                 try {
                     System.out.println("\n>> sleeping\n");
-                    Thread.sleep(5000);
+                    Thread.sleep(8000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
